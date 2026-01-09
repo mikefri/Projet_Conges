@@ -22,12 +22,41 @@
         <h1 id="year-title">📅 Planning</h1>
         <a href="index.html" class="btn-back">⬅ Retour Saisie</a>
     </div>
-    <div class="matrix-container"><div id="matrix-wrapper"></div></div>
+    <div class="matrix-container"><div id="matrix-wrapper">En attente de connexion...</div></div>
 
-    <script>
-        const leaves = JSON.parse(localStorage.getItem('leavesData')) || [];
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB0uDfGAHq99p1vQRnj9pap-E7J52JlQ3w",
+            authDomain: "monplanningconges.firebaseapp.com",
+            projectId: "monplanningconges",
+            storageBucket: "monplanningconges.firebasestorage.app",
+            messagingSenderId: "633023003902",
+            appId: "1:633023003902:web:de61338ee094cf3b7639af"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
         const year = new Date().getFullYear();
         document.getElementById('year-title').innerText = `📅 Planning Annuel ${year}`;
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // Écoute les données Firebase en temps réel
+                onSnapshot(doc(db, "users", user.uid), (snap) => {
+                    if (snap.exists()) {
+                        renderMatrix(snap.data());
+                    }
+                });
+            } else {
+                window.location.href = "index.html"; // Redirige si non connecté
+            }
+        });
 
         function getHolidays(y) {
             const paques = (year) => {
@@ -37,33 +66,49 @@
             const p = paques(y);
             const add = (d, n) => { let res = new Date(d); res.setDate(res.getDate() + n); return res.toISOString().split('T')[0]; };
             return {
-                [`${y}-01-01`]: "Jour An", [add(p, 0)]: "Pâques", [add(p, 1)]: "L.Pâques", [`${y}-05-01`]: "Fête Tr.", [`${y}-05-08`]: "Victoire", [add(p, 39)]: "Ascension", [add(p, 50)]: "L.Pentec.", [`${y}-07-14`]: "Fête Nat.", [`${y}-08-15`]: "Assompt.", [`${y}-11-01`]: "Toussaint", [`${y}-11-11`]: "Armistice", [`${y}-12-25`]: "Noël"
+                [`${y}-01-01`]: "J.An", [add(p, 0)]: "Pâques", [add(p, 1)]: "L.Pâques", [`${y}-05-01`]: "Travail", [`${y}-05-08`]: "Victoire", [add(p, 39)]: "Ascen.", [add(p, 50)]: "Pentec.", [`${y}-07-14`]: "Fête N.", [`${y}-08-15`]: "Assomp.", [`${y}-11-01`]: "Touss.", [`${y}-11-11`]: "Armist.", [`${y}-12-25`]: "Noël"
             };
         }
 
-        const h = getHolidays(year);
-        const months = ["Janv", "Févr", "Mars", "Avril", "Mai", "Juin", "Juil", "Août", "Sept", "Oct", "Nov", "Déc"];
-        let html = `<table class="matrix-table"><thead><tr><th class="day-label">Jour</th>`;
-        months.forEach(m => html += `<th>${m}</th>`);
-        html += `</tr></thead><tbody>`;
+        function renderMatrix(userData) {
+            const leaves = userData.leaves || [];
+            const h = getHolidays(year);
+            const months = ["Janv", "Févr", "Mars", "Avril", "Mai", "Juin", "Juil", "Août", "Sept", "Oct", "Nov", "Déc"];
+            
+            let html = `<table class="matrix-table"><thead><tr><th class="day-label">Jour</th>`;
+            months.forEach(m => html += `<th>${m}</th>`);
+            html += `</tr></thead><tbody>`;
 
-        for(let d = 1; d <= 31; d++) {
-            html += `<tr><td class="day-label">${d}</td>`;
-            for(let mIdx = 0; mIdx < 12; mIdx++) {
-                let lastDay = new Date(year, mIdx + 1, 0).getDate();
-                if(d > lastDay) { html += `<td style="background:#eee"></td>`; }
-                else {
-                    let dateStr = `${year}-${String(mIdx+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                    let isWE = [0, 6].includes(new Date(year, mIdx, d).getDay());
-                    let event = leaves.find(l => l.start === dateStr);
-                    let label = event ? event.title.substring(0,7) : (h[dateStr] ? h[dateStr].substring(0,7) : "");
-                    let style = event ? `background-color:${event.backgroundColor}` : (h[dateStr] ? `background-color:#dcdcdc` : "");
-                    html += `<td class="${isWE ? 'is-weekend' : ''}" style="${style}"><span class="cell-txt">${label}</span></td>`;
+            for(let d = 1; d <= 31; d++) {
+                html += `<tr><td class="day-label">${d}</td>`;
+                for(let mIdx = 0; mIdx < 12; mIdx++) {
+                    let lastDay = new Date(year, mIdx + 1, 0).getDate();
+                    if(d > lastDay) { 
+                        html += `<td style="background:#eee"></td>`; 
+                    } else {
+                        let dateStr = `${year}-${String(mIdx+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                        let isWE = [0, 6].includes(new Date(year, mIdx, d).getDay());
+                        
+                        // Chercher un congé pour cette date
+                        let event = leaves.find(l => l.start === dateStr);
+                        let label = "";
+                        let style = "";
+
+                        if (event) {
+                            label = event.title.substring(0,7);
+                            style = `background-color:${event.backgroundColor}`;
+                        } else if (h[dateStr]) {
+                            label = h[dateStr];
+                            style = `background-color:#dcdcdc`;
+                        }
+
+                        html += `<td class="${isWE ? 'is-weekend' : ''}" style="${style}"><span class="cell-txt">${label}</span></td>`;
+                    }
                 }
+                html += `</tr>`;
             }
-            html += `</tr>`;
+            document.getElementById('matrix-wrapper').innerHTML = html + `</tbody></table>`;
         }
-        document.getElementById('matrix-wrapper').innerHTML = html + `</tbody></table>`;
     </script>
 </body>
 </html>
