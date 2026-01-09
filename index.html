@@ -3,130 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestionnaire de Congés - Version Intégrale</title>
-    
-    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+    <title>Planning Matrix Expert</title>
     
     <style>
-        :root { --primary: #2c3e50; --secondary: #95a5a6; --danger: #e74c3c; --bg: #f4f7f6; --sidebar-width: 350px; }
+        :root { 
+            --primary: #2c3e50; 
+            --secondary: #95a5a6; 
+            --danger: #e74c3c; 
+            --bg: #f4f7f6; 
+            --sidebar-width: 320px; 
+        }
         
         body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); overflow: hidden; }
 
-        /* Sidebar */
-        #sidebar { width: var(--sidebar-width); background: white; border-right: 1px solid #ddd; padding: 20px; overflow-y: auto; height: 100vh; box-sizing: border-box; }
-        h2, h3 { color: var(--primary); margin-top: 20px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        /* Barre Latérale */
+        #sidebar { 
+            width: var(--sidebar-width); 
+            background: white; 
+            border-right: 1px solid #ddd; 
+            padding: 20px; 
+            overflow-y: auto; 
+            height: 100vh; 
+            box-sizing: border-box; 
+        }
+
+        h2, h3 { color: var(--primary); margin-top: 20px; border-bottom: 2px solid #eee; padding-bottom: 5px; }
         
         .quota-card { background: #fff; border: 1px solid #eee; padding: 10px; border-left: 5px solid; margin-bottom: 10px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .quota-val { font-size: 1.2em; font-weight: bold; }
 
         .form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
         label { font-size: 0.85em; font-weight: bold; color: #666; }
-        input, select, button { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        input, select, button { padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        
         button { cursor: pointer; background: var(--primary); color: white; border: none; font-weight: bold; transition: 0.2s; }
-        button:hover { opacity: 0.8; }
+        button:hover { opacity: 0.9; }
 
-        /* Paramétrage */
         #settings-content { background: #f9f9f9; padding: 12px; border-radius: 8px; border: 1px dashed #ccc; margin-top: 10px; }
-        .type-item { display: flex; justify-content: space-between; align-items: center; background: white; padding: 5px; margin-bottom: 4px; border-radius: 4px; font-size: 0.85em; border: 1px solid #eee; }
-        .btn-toggle { background: var(--secondary); font-size: 0.7em; padding: 3px 6px; float: right; }
+        .type-item { display: flex; justify-content: space-between; align-items: center; background: white; padding: 6px; margin-bottom: 4px; border-radius: 4px; font-size: 0.85em; border: 1px solid #eee; }
+        .btn-toggle { background: var(--secondary); font-size: 0.7em; padding: 4px 8px; float: right; }
 
-        /* Container Calendrier + Matrix */
-        #main-view { flex-grow: 1; padding: 20px; background: white; overflow-y: auto; display: flex; flex-direction: column; }
-        #calendar { flex-grow: 1; min-height: 400px; margin-bottom: 30px; }
+        /* Zone Principale */
+        #main-view { flex-grow: 1; padding: 20px; background: white; overflow-y: auto; }
+        
+        .matrix-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .matrix-header h1 { margin: 0; color: var(--primary); font-size: 22px; }
 
-        /* GRILLE MATRIX VERTICALE (Mois en colonnes) */
-        #annual-matrix-view { margin-top: 10px; border-top: 3px solid var(--primary); padding-top: 15px; }
-        .matrix-table { border-collapse: collapse; font-size: 10px; width: 100%; table-layout: fixed; }
-        .matrix-table th, .matrix-table td { border: 1px solid #ddd; text-align: center; height: 18px; position: relative; }
-        .matrix-table th { background: var(--primary); color: white; font-weight: bold; }
-        .day-label { background: #f8f9fa; font-weight: bold; width: 35px; font-size: 9px; }
-        .is-weekend { background-color: #f1f1f1; }
-        .day-filled { font-weight: bold; color: #000; }
+        /* TABLEAU MATRIX VERTICAL */
+        .matrix-container { border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
+        .matrix-table { border-collapse: collapse; width: 100%; table-layout: fixed; background: white; }
+        .matrix-table th, .matrix-table td { border: 1px solid #eee; text-align: center; height: 22px; position: relative; }
+        
+        .matrix-table th { background: var(--primary); color: white; font-weight: bold; padding: 8px 0; font-size: 12px; }
+        .day-label { background: #f8f9fa; font-weight: bold; width: 40px; color: var(--primary); font-size: 10px; }
+        
+        .is-weekend { background-color: #f1f4f6; }
+        .day-filled { font-weight: bold; color: #000; cursor: pointer; border: 1px solid rgba(0,0,0,0.1); }
+        .day-filled:hover::after { content: ' ✕'; color: rgba(0,0,0,0.5); font-size: 9px; }
 
-        /* Style des événements sur le calendrier principal */
-        .fc-event-main { color: #000 !important; font-weight: bold !important; padding-left: 3px !important; }
-        .fc-event-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .cell-txt { font-size: 11px; font-weight: 900; pointer-events: none; }
     </style>
 </head>
 <body>
 
 <div id="sidebar">
-    <h2>📊 Mes Quotas</h2>
+    <h2>📊 Quotas Restants</h2>
     <div id="quotas-display"></div>
 
-    <h3>📅 Poser un congé</h3>
+    <h3>📅 Enregistrer des dates</h3>
     <div class="form-group">
-        <label>Date de début :</label> <input type="date" id="start-date">
-        <label>Date de fin :</label> <input type="date" id="end-date">
+        <label>Du :</label> <input type="date" id="start-date">
+        <label>Au :</label> <input type="date" id="end-date">
         <label>Type :</label>
         <select id="leave-type-select" onchange="checkType()">
-            <option value="">-- Choisir --</option>
-            <option value="AUTRE_INFO">💡 Information libre</option>
+            <option value="">-- Sélectionner --</option>
+            <option value="AUTRE_INFO">💡 Info / Événement libre</option>
         </select>
         <div id="custom-info-group" style="display:none; margin-top:5px;">
-            <label>Description :</label>
-            <input type="text" id="custom-info-text" placeholder="Ex: Déplacement, RDV...">
+            <input type="text" id="custom-info-text" placeholder="Description courte">
         </div>
         <button onclick="addLeaveRange()" style="margin-top:10px;">Enregistrer</button>
     </div>
 
-    <h3>⚙️ Paramètres <button class="btn-toggle" onclick="toggleSettings()" id="toggle-btn">Afficher</button></h3>
+    <h3>⚙️ Paramétrage <button class="btn-toggle" onclick="toggleSettings()" id="toggle-btn">Afficher</button></h3>
     <div id="settings-content" style="display: none;">
         <div id="types-list-admin" style="margin-bottom: 10px;"></div>
         <div class="form-group" style="border-top: 1px solid #ddd; padding-top: 10px;">
             <label>Nouveau type :</label>
             <input type="text" id="new-type-name" placeholder="Ex: CP">
-            <input type="number" id="new-type-quota" placeholder="Jours">
+            <input type="number" id="new-type-quota" placeholder="Quota annuel">
             <input type="color" id="new-type-color" value="#e1ff00">
-            <button onclick="saveNewType()" style="background: #27ae60;">Créer le type</button>
+            <button onclick="saveNewType()" style="background: #27ae60;">Créer</button>
         </div>
-        <button onclick="resetAll()" style="background:var(--danger); width:100%; margin-top:15px; font-size: 10px;">RÉINITIALISER TOUT</button>
+        <button onclick="resetAll()" style="background:var(--danger); width:100%; margin-top:20px; font-size: 10px;">RÉINITIALISER TOUT</button>
     </div>
 </div>
 
 <div id="main-view">
-    <div id="calendar"></div>
+    <div class="matrix-header">
+        <h1 id="year-title">Planning Matrix 2026</h1>
+    </div>
     
-    <div id="annual-matrix-view">
-        <h3 style="margin-top:0; font-size: 16px;">📅 Planning Annuel (Mois en colonnes)</h3>
+    <div class="matrix-container">
         <div id="matrix-wrapper"></div>
     </div>
 </div>
 
 <script>
+    // Récupération des données persistantes
     let config = JSON.parse(localStorage.getItem('leaveConfig')) || {};
     let leaves = JSON.parse(localStorage.getItem('leavesData')) || [];
-    let calendar;
+    const currentYear = 2026; // Année de référence
 
-    document.addEventListener('DOMContentLoaded', function() {
-        // 1. Initialisation du Calendrier
-        calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
-            initialView: 'dayGridMonth',
-            locale: 'fr',
-            firstDay: 1,
-            headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,dayGridYear' },
-            buttonText: { today: 'Aujourd\'hui', month: 'Mois', year: 'Année' },
-            events: leaves,
-            eventClick: function(info) {
-                if(confirm("Supprimer ce jour de congé ?")) {
-                    leaves = leaves.filter(l => !(l.start === info.event.startStr && l.title === info.event.title));
-                    saveAndRefresh();
-                }
-            }
-        });
-        calendar.render();
-        
-        // 2. Mise à jour Interface
+    function init() {
+        document.getElementById('year-title').innerText = `Planning Matrix ${currentYear}`;
         updateUI();
-        generateVerticalMatrix();
-    });
+        generateMatrix();
+    }
 
+    // --- LOGIQUE DE PARAMÉTRAGE ---
     function toggleSettings() {
         const content = document.getElementById('settings-content');
-        const btn = document.getElementById('toggle-btn');
         content.style.display = (content.style.display === "none") ? "block" : "none";
-        btn.innerText = (content.style.display === "none") ? "Afficher" : "Masquer";
+        document.getElementById('toggle-btn').innerText = (content.style.display === "none") ? "Afficher" : "Masquer";
     }
 
     function checkType() {
@@ -144,38 +143,78 @@
         }
     }
 
-    function removeType(t) {
-        if(confirm(`Supprimer le type "${t}" et TOUS les jours associés dans le calendrier ?`)) {
-            leaves = leaves.filter(l => l.title !== t);
-            delete config[t];
+    function removeType(typeName) {
+        if(confirm(`Supprimer le type "${typeName}" et tous ses jours posés ?`)) {
+            leaves = leaves.filter(l => l.title !== typeName);
+            delete config[typeName];
             saveAndRefresh();
         }
     }
 
+    // --- LOGIQUE DE SAISIE ---
     function addLeaveRange() {
         const start = document.getElementById('start-date').value;
         const end = document.getElementById('end-date').value;
-        const typeSelect = document.getElementById('leave-type-select').value;
-        if(!start || !end || !typeSelect) { alert("Veuillez remplir tous les champs."); return; }
+        const typeKey = document.getElementById('leave-type-select').value;
+        
+        if(!start || !end || !typeKey) return alert("Complétez le formulaire.");
 
         let cur = new Date(start);
         let last = new Date(end);
+        
         while(cur <= last) {
-            // Exclusion week-ends
-            if(cur.getDay() !== 0 && cur.getDay() !== 6) {
-                let isCustom = (typeSelect === "AUTRE_INFO");
+            if(cur.getDay() !== 0 && cur.getDay() !== 6) { // Hors week-ends
+                let isCustom = (typeKey === "AUTRE_INFO");
+                let title = isCustom ? document.getElementById('custom-info-text').value : typeKey;
+                let color = isCustom ? "#ecf0f1" : config[typeKey].color;
+                
                 leaves.push({
-                    title: isCustom ? document.getElementById('custom-info-text').value : typeSelect,
+                    title: title || "Info",
                     start: cur.toISOString().split('T')[0],
-                    backgroundColor: isCustom ? "#ecf0f1" : config[typeSelect].color,
-                    borderColor: "#ddd",
-                    allDay: true,
+                    backgroundColor: color,
                     isCustom: isCustom
                 });
             }
             cur.setDate(cur.getDate() + 1);
         }
         saveAndRefresh();
+    }
+
+    // --- LOGIQUE D'AFFICHAGE ---
+    function generateMatrix() {
+        const wrapper = document.getElementById('matrix-wrapper');
+        const months = ["Janv", "Févr", "Mars", "Avril", "Mai", "Juin", "Juil", "Août", "Sept", "Oct", "Nov", "Déc"];
+        
+        let html = `<table class="matrix-table"><thead><tr><th class="day-label">Jour</th>`;
+        months.forEach(m => html += `<th>${m}</th>`);
+        html += `</tr></thead><tbody>`;
+
+        for(let d = 1; d <= 31; d++) {
+            html += `<tr><td class="day-label">${d}</td>`;
+            for(let mIdx = 0; mIdx < 12; mIdx++) {
+                let lastDayInMonth = new Date(currentYear, mIdx + 1, 0).getDate();
+                
+                if(d > lastDayInMonth) {
+                    html += `<td style="background:#eee"></td>`;
+                } else {
+                    let dateStr = `${currentYear}-${String(mIdx+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                    let dayObj = new Date(currentYear, mIdx, d);
+                    let isWeekend = (dayObj.getDay() === 0 || dayObj.getDay() === 6);
+                    let event = leaves.find(l => l.start === dateStr);
+                    
+                    let style = event ? `background-color:${event.backgroundColor};` : "";
+                    let content = event ? `<span class="cell-txt">${event.title.charAt(0).toUpperCase()}</span>` : "";
+                    let clickAction = event ? `onclick="deleteDay('${dateStr}')"` : "";
+                    
+                    html += `<td class="${isWeekend ? 'is-weekend' : ''} ${event ? 'day-filled' : ''}" 
+                                 style="${style}" ${clickAction} title="${event ? event.title : ''}">
+                                 ${content}
+                             </td>`;
+                }
+            }
+            html += `</tr>`;
+        }
+        wrapper.innerHTML = html + `</tbody></table>`;
     }
 
     function updateUI() {
@@ -188,6 +227,7 @@
         admin.innerHTML = '<strong>Types existants :</strong>';
 
         types.forEach(t => {
+            // Décompte précis : on ignore les "isCustom"
             const used = leaves.filter(l => l.title === t && !l.isCustom).length;
             display.innerHTML += `
                 <div class="quota-card" style="border-left-color:${config[t].color}">
@@ -195,7 +235,6 @@
                 </div>`;
             
             let opt = document.createElement('option'); opt.value = t; opt.innerText = t; select.appendChild(opt);
-            
             admin.innerHTML += `
                 <div class="type-item">
                     <span>${t}</span>
@@ -204,34 +243,12 @@
         });
     }
 
-    function generateVerticalMatrix() {
-        const wrapper = document.getElementById('matrix-wrapper');
-        const year = new Date().getFullYear();
-        const months = ["Janv", "Févr", "Mars", "Avril", "Mai", "Juin", "Juil", "Août", "Sept", "Oct", "Nov", "Déc"];
-        
-        let html = `<table class="matrix-table"><thead><tr><th class="day-label">Jour</th>`;
-        months.forEach(m => html += `<th>${m}</th>`);
-        html += `</tr></thead><tbody>`;
-
-        for(let d=1; d<=31; d++) {
-            html += `<tr><td class="day-label">${d}</td>`;
-            for(let mIdx=0; mIdx<12; mIdx++) {
-                let daysInMonth = new Date(year, mIdx + 1, 0).getDate();
-                if(d > daysInMonth) {
-                    html += `<td style="background:#eee"></td>`;
-                } else {
-                    let dateStr = `${year}-${String(mIdx+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                    let isWeekend = ([0, 6].includes(new Date(year, mIdx, d).getDay()));
-                    let found = leaves.find(l => l.start === dateStr);
-                    let style = found ? `background-color:${found.backgroundColor};` : "";
-                    // On affiche l'initiale du congé si trouvé
-                    let label = found ? found.title.charAt(0).toUpperCase() : "";
-                    html += `<td class="${isWeekend ? 'is-weekend' : ''} ${found ? 'day-filled' : ''}" style="${style}" title="${found ? found.title : ''}">${label}</td>`;
-                }
-            }
-            html += `</tr>`;
+    // --- ACTIONS SYSTÈME ---
+    function deleteDay(date) {
+        if(confirm(`Supprimer l'entrée du ${date} ?`)) {
+            leaves = leaves.filter(l => l.start !== date);
+            saveAndRefresh();
         }
-        wrapper.innerHTML = html + `</tbody></table>`;
     }
 
     function saveAndRefresh() {
@@ -240,11 +257,13 @@
     }
 
     function resetAll() {
-        if(confirm("DANGER : Supprimer TOUTES les données (types et jours posés) ?")) {
+        if(confirm("DANGER : Supprimer TOUT (Types + Dates posées) ?")) {
             localStorage.clear();
             location.reload();
         }
     }
+
+    init();
 </script>
 </body>
 </html>
