@@ -91,9 +91,8 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-    import { Calendar } from 'https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js';
 
-    // TA CONFIGURATION FIREBASE (REMPLACE PAR TES CLES)
+    // --- CONFIGURATION FIREBASE ---
     const firebaseConfig = {
         apiKey: "AIzaSyB0uDfGAHq99p1vQRnj9pap-E7J52JlQ3w",
         authDomain: "monplanningconges.firebaseapp.com",
@@ -120,30 +119,34 @@
         };
     }
 
-    // --- AUTHENTIFICATION ---
-window.toggleAuthMode = function() {
-    console.log("Clic détecté !");
-    const t = document.getElementById('auth-title');
-    const b = document.getElementById('auth-btn');
-    const l = document.getElementById('toggle-auth');
-    
-    if (b.innerText.includes("connecter")) {
-        t.innerText = "Inscription";
-        b.innerText = "Créer mon compte";
-        l.innerText = "Déjà inscrit ? Connexion";
-    } else {
-        t.innerText = "Connexion";
-        b.innerText = "Se connecter";
-        l.innerText = "Pas encore de compte ? Créer un profil";
-    }
-};
+    // --- AUTHENTIFICATION (Fixée pour les modules) ---
+    window.toggleAuthMode = function() {
+        const t = document.getElementById('auth-title');
+        const b = document.getElementById('auth-btn');
+        const l = document.getElementById('toggle-auth');
+        if (b.innerText.includes("connecter")) {
+            t.innerText = "Inscription";
+            b.innerText = "Créer mon compte";
+            l.innerText = "Déjà inscrit ? Connexion";
+        } else {
+            t.innerText = "Connexion";
+            b.innerText = "Se connecter";
+            l.innerText = "Pas encore de compte ? Créer un profil";
+        }
+    };
 
-    window.handleAuth = async () => {
-        const email = document.getElementById('email').value, pass = document.getElementById('password').value;
+    window.handleAuth = async function() {
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('password').value;
+        if(!email || !pass) return alert("Remplis l'email et le mot de passe");
+        
         try {
-            if(document.getElementById('auth-btn').innerText === "Se connecter") await signInWithEmailAndPassword(auth, email, pass);
-            else await createUserWithEmailAndPassword(auth, email, pass);
-        } catch(e) { alert("Erreur : " + e.message); }
+            if (document.getElementById('auth-btn').innerText.includes("connecter")) {
+                await signInWithEmailAndPassword(auth, email, pass);
+            } else {
+                await createUserWithEmailAndPassword(auth, email, pass);
+            }
+        } catch (e) { alert("Erreur : " + e.message); }
     };
 
     window.logout = () => signOut(auth);
@@ -187,7 +190,6 @@ window.toggleAuthMode = function() {
                 userData = docSnap.data();
                 updateUI();
             } else {
-                // Config initiale si nouveau compte
                 const initial = { leaves: [], config: { "RTT": {quota:10, color:"#e1ff00"}, "CP": {quota:25, color:"#3498db"} } };
                 setDoc(doc(db, "users", currentUser.uid), initial);
             }
