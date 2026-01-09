@@ -26,9 +26,10 @@
 
         #settings-content { background: #f9f9f9; padding: 12px; border-radius: 8px; border: 1px dashed #ccc; margin-top: 10px; }
         .type-item { display: flex; justify-content: space-between; align-items: center; background: white; padding: 5px; margin-bottom: 4px; border-radius: 4px; font-size: 0.85em; border: 1px solid #eee; }
+        .btn-toggle { background: var(--secondary); font-size: 0.7em; padding: 3px 6px; float: right; }
 
         #calendar-container { flex-grow: 1; padding: 20px; background: white; overflow-y: auto; }
-        .fc-event-main { color: #000 !important; font-weight: bold !important; }
+        .fc-event-main { color: #000 !important; font-weight: bold !important; padding-left: 3px !important; }
     </style>
 </head>
 <body>
@@ -54,16 +55,16 @@
         <button onclick="addLeaveRange()" style="margin-top:10px;">Enregistrer</button>
     </div>
 
-    <h3>⚙️ Paramètres</h3>
-    <div id="settings-content">
+    <h3>⚙️ Paramètres <button class="btn-toggle" onclick="toggleSettings()" id="toggle-btn">Afficher</button></h3>
+    <div id="settings-content" style="display: none;">
         <div id="types-list-admin" style="margin-bottom: 10px;"></div>
         <div class="form-group">
             <input type="text" id="new-type-name" placeholder="Nom (ex: RTT)">
             <input type="number" id="new-type-quota" placeholder="Nb jours">
             <input type="color" id="new-type-color" value="#e1ff00">
-            <button onclick="saveNewType()" style="background: #27ae60;">+ Ajouter ce type</button>
+            <button onclick="saveNewType()" style="background: #27ae60;">+ Créer Type</button>
         </div>
-        <button onclick="resetAll()" style="background:var(--danger); width:100%; margin-top:10px; font-size:10px;">RÉINITIALISER TOUT</button>
+        <button onclick="resetAll()" style="background:var(--danger); width:100%; font-size:10px;">RÉINITIALISER TOUT</button>
     </div>
 </div>
 
@@ -83,6 +84,7 @@
             firstDay: 1,
             headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,dayGridYear' },
             events: leaves,
+            // Recharge les fériés quand on change de vue (mois/année)
             datesSet: function(info) {
                 loadHolidays(info.view.currentStart.getFullYear());
             },
@@ -98,21 +100,32 @@
         updateUI();
     });
 
+    // Fonction pour charger les fériés depuis l'API sans sélecteur (basé sur la vue du calendrier)
     async function loadHolidays(year) {
         try {
             const res = await fetch(`https://calendrier.etamine.pub/api/v1/jours-feries/${year}`);
+            if(!res.ok) return;
             const data = await res.json();
-            const oldSource = calendar.getEventSourceById('holidays');
-            if(oldSource) oldSource.remove();
             
+            // On retire les anciens fériés
+            const oldSource = calendar.getEventSourceById('feries');
+            if(oldSource) oldSource.remove();
+
             const holidayEvents = Object.keys(data).map(d => ({
                 title: data[d],
                 start: d,
                 display: 'background',
                 backgroundColor: '#e0e0e0'
             }));
-            calendar.addEventSource({ id: 'holidays', events: holidayEvents });
-        } catch(e) { console.log("Erreur API fériés"); }
+            
+            calendar.addEventSource({ id: 'feries', events: holidayEvents });
+        } catch(e) { console.error("Erreur API fériés"); }
+    }
+
+    function toggleSettings() {
+        const content = document.getElementById('settings-content');
+        content.style.display = (content.style.display === "none") ? "block" : "none";
+        document.getElementById('toggle-btn').innerText = (content.style.display === "none") ? "Afficher" : "Masquer";
     }
 
     function checkType() {
@@ -131,7 +144,7 @@
     }
 
     function removeType(t) {
-        if(confirm(`Supprimer le type "${t}" et ses congés ?`)) {
+        if(confirm(`Supprimer le type "${t}" et les jours associés ?`)) {
             leaves = leaves.filter(l => l.title !== t);
             delete config[t];
             saveAndRefresh();
@@ -150,7 +163,7 @@
             if(cur.getDay() !== 0 && cur.getDay() !== 6) {
                 let isCustom = (typeSelect === "AUTRE_INFO");
                 leaves.push({
-                    title: isCustom ? document.getElementById('custom-info-text').value.substring(0,7) : typeSelect,
+                    title: isCustom ? document.getElementById('custom-info-text').value : typeSelect,
                     start: cur.toISOString().split('T')[0],
                     backgroundColor: isCustom ? "#ecf0f1" : config[typeSelect].color,
                     borderColor: "#ddd",
@@ -184,7 +197,7 @@
             admin.innerHTML += `
                 <div class="type-item">
                     <span>${t} (${config[t].quota}j)</span>
-                    <button onclick="removeType('${t}')" style="background:none; color:red; padding:0; font-size:15px;">🗑️</button>
+                    <button onclick="removeType('${t}')" style="background:none; color:red; padding:0; border:none; cursor:pointer;">🗑️</button>
                 </div>`;
         });
     }
@@ -195,10 +208,7 @@
     }
 
     function resetAll() { 
-        if(confirm("Attention : Cela va supprimer TOUTES vos données. Continuer ?")) { 
-            localStorage.clear(); 
-            location.reload(); 
-        } 
+        if(confirm("Tout effacer ?")) { localStorage.clear(); location.reload(); } 
     }
 </script>
 </body>
