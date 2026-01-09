@@ -203,15 +203,39 @@ document.addEventListener('DOMContentLoaded', function() {
         save();
     }
 
-    function updateUI() {
-        const d = document.getElementById('quotas-display'), s = document.getElementById('leave-type-select'), a = document.getElementById('types-list-admin');
-        Object.keys(config).forEach(t => {
-            const used = leaves.filter(l => l.title === t && !l.isCustom).length;
-            d.innerHTML += `<div class="quota-card" style="border-left-color:${config[t].color}"><strong>${t}</strong>: ${config[t].quota - used} / ${config[t].quota}j</div>`;
-            s.innerHTML += `<option value="${t}">${t}</option>`;
-            a.innerHTML += `<div class="type-item"><span>${t}</span><button onclick="removeType('${t}')" style="background:none;color:red;border:none;cursor:pointer">🗑️</button></div>`;
-        });
-    }
+function updateUI() {
+    const d = document.getElementById('quotas-display'), 
+          s = document.getElementById('leave-type-select'), 
+          a = document.getElementById('types-list-admin');
+    
+    d.innerHTML = ''; 
+    s.innerHTML = '<option value="">-- Choisir --</option><option value="AUTRE_INFO">💡 Information libre</option>';
+    a.innerHTML = '';
+
+    Object.keys(config).forEach(t => {
+        const total = config[t].quota;
+        const used = leaves.filter(l => l.title === t && !l.isCustom).length;
+        const remaining = total - used;
+
+        // Cartes de quotas avec juste la bordure de couleur
+        d.innerHTML += `
+            <div class="quota-card" style="border-left: 6px solid ${config[t].color}; margin-bottom: 10px; padding: 12px; background: #fff; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center;">
+                <strong style="color: #2c3e50; font-size: 1.1em;">${t}</strong>
+                <span style="font-weight: bold; font-size: 1.1em; color: ${remaining < 0 ? 'red' : '#2c3e50'};">
+                    ${remaining} / ${total}j
+                </span>
+            </div>`;
+
+        // Remplissage du menu déroulant
+        s.innerHTML += `<option value="${t}">${t}</option>`;
+        
+        // Remplissage de la liste admin
+        a.innerHTML += `<div class="type-item">
+            <span>${t}</span>
+            <button onclick="removeType('${t}')" style="background:none; color:red; border:none; cursor:pointer; font-size:16px;">🗑️</button>
+        </div>`;
+    });
+}
     function save() { localStorage.setItem('leavesData', JSON.stringify(leaves)); location.reload(); }
     function resetAll() { if(confirm("Tout effacer ?")) { localStorage.clear(); location.reload(); } }
 </script>
