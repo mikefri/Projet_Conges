@@ -7,7 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
     <style>
-        :root { --primary: #2c3e50; --bg: #f4f7f6; --danger: #e74c3c; --success: #27ae60; }
+        :root { --primary: #2c3e50; --bg: #f4f7f6; --danger: #e74c3c; --success: #27ae60; --info: #3498db; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: #333; }
         
         /* AUTH */
@@ -18,6 +18,7 @@
         /* APP LAYOUT */
         #main-app { display: none; }
         .header { background: white; padding: 10px 20px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; height: 60px; }
+        .header-left { display: flex; align-items: center; gap: 15px; }
         .app-container { display: flex; height: calc(100vh - 60px); }
         
         /* SIDEBAR */
@@ -28,6 +29,10 @@
         input[type="date"], select, input[type="text"], input[type="number"] { width: 100%; padding: 10px; margin: 5px 0 15px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
         .btn-action { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 10px; }
         
+        /* BOUTON PLANNING (MÊME ONGLET) */
+        .btn-nav { background: var(--info); color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; text-decoration: none; font-size: 0.85em; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-nav:hover { background: #2980b9; }
+
         /* SETTINGS */
         #settings-content { background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px dashed #ccc; margin-top: 10px; }
         .type-item-row { display: flex; justify-content: space-between; align-items: center; background: white; padding: 8px; margin-bottom: 5px; border-radius: 4px; border: 1px solid #eee; font-size: 0.9em; }
@@ -50,7 +55,10 @@
 
 <div id="main-app">
     <div class="header">
-        <span>👤 <strong id="user-display"></strong></span>
+        <div class="header-left">
+            <span>👤 <strong id="user-display"></strong></span>
+            <a href="planning.html" class="btn-nav">📅 Planning Global</a>
+        </div>
         <button onclick="location.reload()" style="background:var(--danger); color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer;">Déconnexion</button>
     </div>
 
@@ -96,7 +104,7 @@
     import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
-        apiKey: "AIzaSyB0uDfGAHq99p1VqRNj9pap-E7J52JlQ3w",
+        apiKey: "AIzaSyB0uDfGAHq99p1vQRnj9pap-E7J52JlQ3w",
         authDomain: "monplanningconges.firebaseapp.com",
         projectId: "monplanningconges",
         storageBucket: "monplanningconges.firebasestorage.app",
@@ -175,7 +183,6 @@
     }
 
     function refreshAll() {
-        // MAJ Quotas & Selecteur
         const d = document.getElementById('quotas-display'), s = document.getElementById('leave-type-select'), a = document.getElementById('types-list-admin');
         d.innerHTML = ''; 
         s.innerHTML = '<option value="">-- Choisir --</option><option value="INFO_LIBRE">💡 Information libre</option>'; 
@@ -184,11 +191,9 @@
         Object.keys(userData.config).forEach(t => {
             const used = userData.leaves.filter(l => l.title === t && !l.isCustom).length;
             const rem = userData.config[t].quota - used;
-            // Sidebar display
             d.innerHTML += `<div class="quota-card" style="border-left-color:${userData.config[t].color}"><strong>${t}</strong> <b>${rem}/${userData.config[t].quota}j</b></div>`;
-            // Select dropdown
             s.innerHTML += `<option value="${t}">${t}</option>`;
-            // Admin list
+            
             const row = document.createElement('div');
             row.className = 'type-item-row';
             row.innerHTML = `<span>${t} (${userData.config[t].quota}j)</span>`;
@@ -206,12 +211,10 @@
             a.appendChild(row);
         });
 
-        // MAJ Calendrier
         calendar.removeAllEvents();
         calendar.addEventSource(userData.leaves);
     }
 
-    // --- INTERACTION UI ---
     document.getElementById('leave-type-select').onchange = (e) => {
         document.getElementById('custom-info-group').style.display = (e.target.value === 'INFO_LIBRE') ? 'block' : 'none';
     };
