@@ -2,17 +2,36 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Planning Annuel Matrix</title>
+    <title>Planning Annuel Matrix - Vue Large</title>
     <style>
+        :root { --primary: #2c3e50; }
         body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; margin: 0; }
+        
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .btn-back { background: #2c3e50; color: white; text-decoration: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; }
-        .matrix-table { border-collapse: collapse; width: 100%; background: white; table-layout: fixed; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .matrix-table th, .matrix-table td { border: 1px solid #ddd; text-align: center; height: 22px; font-size: 11px; }
-        .matrix-table th { background: #2c3e50; color: white; padding: 8px 0; }
-        .day-label { background: #f8f9fa; font-weight: bold; width: 40px; }
+        .btn-back { background: var(--primary); color: white; text-decoration: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; }
+        
+        .matrix-container { overflow-x: auto; background: white; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        
+        .matrix-table { border-collapse: collapse; width: 100%; min-width: 1200px; table-layout: fixed; }
+        .matrix-table th, .matrix-table td { border: 1px solid #ddd; text-align: center; height: 28px; vertical-align: middle; }
+        
+        .matrix-table th { background: var(--primary); color: white; padding: 8px 0; font-size: 12px; }
+        
+        .day-label { background: #f8f9fa; font-weight: bold; width: 45px; font-size: 11px; }
+        
+        /* Style pour les 7 caractères */
+        .cell-txt { 
+            font-size: 9px; 
+            font-weight: bold; 
+            text-transform: uppercase; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            display: block;
+            letter-spacing: -0.5px; /* Resserre les lettres pour gagner de la place */
+        }
+
         .is-weekend { background-color: #f1f4f6; }
-        .day-filled { font-weight: 900; color: black; }
+        .day-filled { border: 1px solid rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
@@ -21,7 +40,9 @@
         <a href="index.html" class="btn-back">⬅ Revenir à la Saisie</a>
     </div>
 
-    <div id="matrix-wrapper"></div>
+    <div class="matrix-container">
+        <div id="matrix-wrapper"></div>
+    </div>
 
     <script>
         const leaves = JSON.parse(localStorage.getItem('leavesData')) || [];
@@ -36,15 +57,21 @@
             html += `<tr><td class="day-label">${d}</td>`;
             for(let mIdx = 0; mIdx < 12; mIdx++) {
                 let lastDay = new Date(year, mIdx + 1, 0).getDate();
+                
                 if(d > lastDay) {
                     html += `<td style="background:#eee"></td>`;
                 } else {
                     let dateStr = `${year}-${String(mIdx+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                     let isWE = ([0, 6].includes(new Date(year, mIdx, d).getDay()));
                     let event = leaves.find(l => l.start === dateStr);
+                    
                     let style = event ? `background-color:${event.backgroundColor};` : "";
+                    
+                    // On prend les 7 premiers caractères du titre
+                    let label = event ? event.title.substring(0, 7) : "";
+                    
                     html += `<td class="${isWE ? 'is-weekend' : ''} ${event ? 'day-filled' : ''}" style="${style}">
-                                ${event ? event.title.charAt(0).toUpperCase() : ''}
+                                <span class="cell-txt">${label}</span>
                              </td>`;
                 }
             }
