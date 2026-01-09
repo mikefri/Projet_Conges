@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon Gestionnaire de Congés Perso</title>
+    <title>Gestionnaire de Congés</title>
     
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
@@ -37,8 +37,6 @@
         }
 
         h2, h3 { color: var(--primary); margin-top: 25px; }
-        h2:first-child { margin-top: 0; }
-
         .quota-card {
             background: #fff;
             border: 1px solid #eee;
@@ -46,46 +44,36 @@
             border-left: 5px solid;
             margin-bottom: 10px;
             border-radius: 6px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
-        .quota-val { font-size: 1.4em; font-weight: bold; color: var(--primary); }
+        .quota-val { font-size: 1.4em; font-weight: bold; }
 
         .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
-        label { font-size: 0.9em; font-weight: 600; color: #555; }
-        input, select, button { 
-            padding: 10px; 
-            border: 1px solid #ddd; 
-            border-radius: 5px; 
-            font-size: 14px;
-        }
-        button { 
-            cursor: pointer; 
-            background: var(--primary); 
-            color: white; 
-            border: none; 
-            font-weight: bold;
-            transition: background 0.2s;
-        }
-        button:hover { opacity: 0.9; }
+        input, select, button { padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
+        button { cursor: pointer; background: var(--primary); color: white; border: none; font-weight: bold; }
 
-        #settings-content {
-            background: #f9f9f9;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px dashed #ccc;
-            margin-top: 10px;
-        }
+        #settings-content { background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px dashed #ccc; margin-top: 10px; }
         .btn-toggle { background: var(--secondary); font-size: 0.7em; padding: 4px 8px; float: right; }
-        .btn-delete { background: var(--danger); margin-top: 20px; }
-
+        
         #calendar-container { flex-grow: 1; padding: 25px; background: white; overflow-y: auto; }
-        #calendar { height: 100%; }
-
-        .empty-msg { font-style: italic; color: #888; font-size: 0.9em; }
+        
+        /* STYLE POUR LE TEXTE DANS LES BARRES */
+        .fc-event-title {
+            font-weight: bold !important;
+            font-size: 0.85em !important;
+            padding: 2px 5px !important;
+            color: #000 !important; /* Texte en noir pour être lisible sur le jaune/vert */
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        
+        .fc-v-event, .fc-h-event {
+            border: 1px solid rgba(0,0,0,0.1) !important;
+        }
 
         @media (max-width: 800px) {
             body { flex-direction: column; }
-            #sidebar { width: auto; height: auto; border-right: none; border-bottom: 1px solid #ddd; }
+            #sidebar { width: auto; height: auto; }
         }
     </style>
 </head>
@@ -93,44 +81,25 @@
 
 <div id="sidebar">
     <h2>📊 Mes Quotas</h2>
-    <div id="quotas-display">
-        </div>
+    <div id="quotas-display"></div>
 
     <h3>📅 Poser un congé</h3>
     <div class="form-group">
-        <label>Début :</label>
-        <input type="date" id="start-date">
-        
-        <label>Fin :</label>
-        <input type="date" id="end-date">
-        
-        <label>Type :</label>
-        <select id="leave-type-select">
-            <option value="">-- Créer un type d'abord --</option>
-        </select>
-        
+        <label>Début :</label><input type="date" id="start-date">
+        <label>Fin :</label><input type="date" id="end-date">
+        <label>Type :</label><select id="leave-type-select"></select>
         <button onclick="addLeaveRange()">Enregistrer</button>
     </div>
 
-    <h3>
-        ⚙️ Paramétrage 
-        <button class="btn-toggle" onclick="toggleSettings()" id="toggle-btn">Afficher</button>
-    </h3>
-    
+    <h3>⚙️ Paramétrage <button class="btn-toggle" onclick="toggleSettings()" id="toggle-btn">Afficher</button></h3>
     <div id="settings-content" style="display: none;">
         <div class="form-group">
-            <label>Nom du congé :</label>
-            <input type="text" id="new-type-name" placeholder="Ex: Vacances été">
-            
-            <label>Quota annuel :</label>
-            <input type="number" id="new-type-quota" placeholder="Ex: 25">
-            
-            <label>Couleur :</label>
-            <input type="color" id="new-type-color" value="#3498db">
-            
-            <button onclick="saveNewType()" style="background: #27ae60;">Ajouter ce type</button>
+            <label>Nom du congé :</label><input type="text" id="new-type-name" placeholder="Ex: Congés Été">
+            <label>Quota :</label><input type="number" id="new-type-quota">
+            <label>Couleur :</label><input type="color" id="new-type-color" value="#e1ff00">
+            <button onclick="saveNewType()" style="background: #27ae60;">Ajouter</button>
         </div>
-        <button class="btn-delete" onclick="resetAll()">Vider toutes les données</button>
+        <button onclick="resetAll()" style="background:var(--danger); width:100%; margin-top:10px;">Réinitialiser tout</button>
     </div>
 </div>
 
@@ -139,25 +108,22 @@
 </div>
 
 <script>
-    // Initialisation vide (plus de CP ni de RTT par défaut)
     let config = JSON.parse(localStorage.getItem('leaveConfig')) || {};
     let leaves = JSON.parse(localStorage.getItem('leavesData')) || [];
     let calendar;
 
     document.addEventListener('DOMContentLoaded', function() {
         const calendarEl = document.getElementById('calendar');
-        
         calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
             locale: 'fr',
             firstDay: 1,
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,dayGridYear'
-            },
-            buttonText: { today: 'Aujourd\'hui', month: 'Mois', year: 'Année' },
+            headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,dayGridYear' },
             events: leaves,
+            // Force l'affichage du titre
+            eventDidMount: function(info) {
+                info.el.title = info.event.title; // Tooltip au survol
+            },
             eventClick: function(info) {
                 if(confirm(`Supprimer ce jour ?`)) {
                     leaves = leaves.filter(l => !(l.start === info.event.startStr && l.title === info.event.title));
@@ -165,7 +131,6 @@
                 }
             }
         });
-        
         calendar.render();
         updateUI();
     });
@@ -173,47 +138,35 @@
     function toggleSettings() {
         const content = document.getElementById('settings-content');
         const btn = document.getElementById('toggle-btn');
-        if (content.style.display === "none") {
-            content.style.display = "block";
-            btn.innerText = "Masquer";
-        } else {
-            content.style.display = "none";
-            btn.innerText = "Afficher";
-        }
+        content.style.display = (content.style.display === "none") ? "block" : "none";
+        btn.innerText = (content.style.display === "none") ? "Afficher" : "Masquer";
     }
 
     function saveNewType() {
         const name = document.getElementById('new-type-name').value.trim();
         const quota = document.getElementById('new-type-quota').value;
         const color = document.getElementById('new-type-color').value;
-        
-        if(!name || !quota) { alert("Veuillez remplir le nom et le quota."); return; }
-        
+        if(!name || !quota) return;
         config[name] = { quota: parseInt(quota), color: color };
         localStorage.setItem('leaveConfig', JSON.stringify(config));
         updateUI();
-        document.getElementById('new-type-name').value = '';
     }
 
     function addLeaveRange() {
-        const startInput = document.getElementById('start-date').value;
-        const endInput = document.getElementById('end-date').value;
+        const start = document.getElementById('start-date').value;
+        const end = document.getElementById('end-date').value;
         const type = document.getElementById('leave-type-select').value;
-        
-        if(!type) { alert("Créez d'abord un type de congé dans Paramétrage."); return; }
-        if(!startInput || !endInput || startInput > endInput) { alert("Dates invalides."); return; }
+        if(!type || !start || !end) return;
 
-        let current = new Date(startInput);
-        let last = new Date(endInput);
-        
+        let current = new Date(start);
+        let last = new Date(end);
         while(current <= last) {
-            // Exclure week-ends
             if(current.getDay() !== 0 && current.getDay() !== 6) {
-                let dateStr = current.toISOString().split('T')[0];
                 leaves.push({
-                    title: type,
-                    start: dateStr,
+                    title: type, // C'est ce texte qui s'affichera dans la barre
+                    start: current.toISOString().split('T')[0],
                     backgroundColor: config[type].color,
+                    borderColor: config[type].color,
                     allDay: true
                 });
             }
@@ -227,27 +180,14 @@
         const select = document.getElementById('leave-type-select');
         display.innerHTML = '';
         select.innerHTML = '';
-
         const types = Object.keys(config);
-
         if(types.length === 0) {
-            display.innerHTML = '<p class="empty-msg">Aucun type de congé configuré. Allez dans Paramétrage.</p>';
-            select.innerHTML = '<option value="">-- Aucun type --</option>';
+            display.innerHTML = '<p style="color:gray">Aucun type configuré.</p>';
         } else {
             types.forEach(type => {
                 const used = leaves.filter(l => l.title === type).length;
-                const remaining = config[type].quota - used;
-                
-                display.innerHTML += `
-                    <div class="quota-card" style="border-left-color: ${config[type].color}">
-                        <strong>${type}</strong><br>
-                        <span class="quota-val">${remaining}</span> / ${config[type].quota} j restants
-                    </div>`;
-                
-                const opt = document.createElement('option');
-                opt.value = type;
-                opt.innerText = type;
-                select.appendChild(opt);
+                display.innerHTML += `<div class="quota-card" style="border-left-color:${config[type].color}"><strong>${type}</strong>: ${config[type].quota - used} / ${config[type].quota} j</div>`;
+                select.innerHTML += `<option value="${type}">${type}</option>`;
             });
         }
     }
@@ -258,12 +198,8 @@
     }
 
     function resetAll() {
-        if(confirm("Tout effacer ?")) {
-            localStorage.clear();
-            location.reload();
-        }
+        if(confirm("Tout effacer ?")) { localStorage.clear(); location.reload(); }
     }
 </script>
-
 </body>
 </html>
