@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Mon Gestionnaire de Congés</title>
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; gap: 20px; padding: 20px; }
+        #sidebar { width: 300px; background: #f4f4f4; padding: 15px; border-radius: 8px; }
+        #calendar-container { flex-grow: 1; }
+        .stat-card { background: white; padding: 10px; margin-bottom: 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+
+<div id="sidebar">
+    <h2>Mes Quotas</h2>
+    <div id="quotas-list"></div>
+    <hr>
+    <h3>Poser un congé</h3>
+    <input type="date" id="leave-date">
+    <select id="leave-type"></select>
+    <button onclick="addLeave()">Ajouter</button>
+</div>
+
+<div id="calendar-container">
+    <div id="calendar"></div>
+</div>
+
+<script>
+    // Configuration par défaut (Paramétrable via interface plus tard)
+    let config = {
+        'CP': { quota: 25, color: '#3788d8' },
+        'RTT': { quota: 10, color: '#2ecc71' }
+    };
+
+    let leaves = JSON.parse(localStorage.getItem('myLeaves')) || [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const calendarEl = document.getElementById('calendar');
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            events: leaves,
+            locale: 'fr'
+        });
+        calendar.render();
+        updateDashboard();
+        populateTypes();
+    });
+
+    function populateTypes() {
+        const select = document.getElementById('leave-type');
+        for (let type in config) {
+            let opt = document.createElement('option');
+            opt.value = type;
+            opt.innerHTML = type;
+            select.appendChild(opt);
+        }
+    }
+
+    function addLeave() {
+        const date = document.getElementById('leave-date').value;
+        const type = document.getElementById('leave-type').value;
+        if(!date) return;
+
+        const newLeave = { title: type, start: date, backgroundColor: config[type].color };
+        leaves.push(newLeave);
+        localStorage.setItem('myLeaves', JSON.stringify(leaves));
+        location.reload(); // Rafraîchissement simple
+    }
+
+    function updateDashboard() {
+        const list = document.getElementById('quotas-list');
+        for (let type in config) {
+            const used = leaves.filter(l => l.title === type).length;
+            list.innerHTML += `
+                <div class="stat-card">
+                    <strong>${type}</strong>: ${config[type].quota - used} restants / ${config[type].quota}
+                </div>`;
+        }
+    }
+</script>
+</body>
+</html>
