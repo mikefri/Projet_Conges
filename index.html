@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Mon Planning Congés - Version Intégrale</title>
+    <title>Mon Planning Congés</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
@@ -17,12 +17,16 @@
         
         /* LAYOUT PRINCIPAL */
         #main-app { display: none; }
-        .header { background: white; padding: 10px 20px; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; height: 60px; }
+        .header { 
+    display: flex; 
+    justify-content: space-between; /* Pousse les blocs aux extrémités */
+    align-items: center; 
+}
         .header-left { display: flex; align-items: center; gap: 15px; }
         .app-container { display: flex; height: calc(100vh - 60px); }
         
         /* SIDEBAR */
-        #sidebar { width: 350px; background: white; border-right: 1px solid #ddd; padding: 20px; overflow-y: auto; box-sizing: border-box; }
+        #sidebar { width: 350px; background: #e9ecef; border-right: 1px solid #ddd; padding: 20px; overflow-y: auto; box-sizing: border-box; }
         .quota-card { background: #fff; border: 1px solid #eee; padding: 12px; margin-bottom: 10px; border-radius: 6px; border-left: 7px solid #ccc; display: flex; justify-content: space-between; align-items: center; }
         
         /* FORMULAIRES */
@@ -38,11 +42,55 @@
         
         #calendar-container { flex-grow: 1; padding: 20px; background: white; overflow-y: auto; }
         .btn-toggle { font-size: 0.75em; background: #95a5a6; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; float: right; }
+        /* Force le texte en noir pour tous les événements du calendrier */
+.fc-event-title, .fc-event-main {
+    color: #000000 !important;
+}
+        /* Le conteneur qui centre tout */
+#auth-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: #2c3e50; /* Bleu nuit comme sur ta capture */
+}
+
+/* Le grand titre palmier */
+.app-main-title {
+    color: white;
+    font-size: 2.8em;
+    margin-bottom: 20px;
+    font-weight: 800;
+    text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+}
+
+/* La boîte blanche de connexion */
+.auth-box {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    width: 100%;
+    max-width: 350px;
+    text-align: center;
+}
+
+/* Les champs de texte dans la boîte */
+.auth-box input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-sizing: border-box; /* Important pour que le padding ne dépasse pas */
+}
     </style>
 </head>
 <body>
 
 <div id="auth-container">
+    <h1 class="app-main-title">🌴 Mon Planning Congés</h1>
     <div class="auth-box">
         <h2 id="auth-title">Connexion</h2>
         <input type="email" id="email" placeholder="Email">
@@ -53,17 +101,17 @@
 </div>
 
 <div id="main-app">
-    <div class="header">
-        <div class="header-left">
-            <span>👤 <strong id="user-display"></strong></span>
-            <a href="planning.html" class="btn-nav">📅 Planning Global</a>
-        </div>
-        <button onclick="location.reload()" style="background:var(--danger); color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer;">Déconnexion</button>
+<div class="header">
+    <div class="header-left">
+        <span>👤 <strong id="user-display"></strong></span>
+        <button id="logout-btn" style="background:var(--danger); color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer; margin-left:10px;">Déconnexion</button>
     </div>
+    <a href="planning.html" class="btn-nav">📅 Planning Global</a>
+</div>
 
     <div class="app-container">
         <div id="sidebar">
-            <h3>📊 Mes Quotas</h3>
+            <h3>📊 Compteurs de Jours</h3>
             <div id="quotas-display"></div>
             
             <hr>
@@ -99,9 +147,9 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
+    
     const firebaseConfig = {
         apiKey: "AIzaSyB0uDfGAHq99p1VqRNj9pap-E7J52JlQ3w",
         authDomain: "monplanningconges.firebaseapp.com",
@@ -258,6 +306,16 @@
         document.getElementById('start-date').value = '';
         document.getElementById('end-date').value = '';
         document.getElementById('custom-info-text').value = '';
+    };
+
+    // --- GESTION DE LA DECONNEXION ---
+    document.getElementById('logout-btn').onclick = async () => {
+        try {
+            await signOut(auth);
+            window.location.reload();
+        } catch (err) {
+            alert("Erreur lors de la déconnexion : " + err.message);
+        }
     };
 </script>
 </body>
