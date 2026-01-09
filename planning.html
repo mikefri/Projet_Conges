@@ -19,7 +19,6 @@
         
         .day-label { background: #f8f9fa; font-weight: bold; width: 45px; font-size: 11px; }
         
-        /* Style pour les 7 caractères */
         .cell-txt { 
             font-size: 9px; 
             font-weight: bold; 
@@ -27,7 +26,8 @@
             white-space: nowrap; 
             overflow: hidden; 
             display: block;
-            letter-spacing: -0.5px; /* Resserre les lettres pour gagner de la place */
+            letter-spacing: -0.5px;
+            color: #000; /* Texte noir pour une meilleure lisibilité */
         }
 
         .is-weekend { background-color: #f1f4f6; }
@@ -41,7 +41,7 @@
     </div>
 
     <div class="matrix-container">
-        <div id="matrix-wrapper"></div>
+        <div id="matrix-wrapper">Chargement du planning...</div>
     </div>
 
     <script>
@@ -49,35 +49,60 @@
         const year = 2026;
         const months = ["Janv", "Févr", "Mars", "Avril", "Mai", "Juin", "Juil", "Août", "Sept", "Oct", "Nov", "Déc"];
 
-        let html = `<table class="matrix-table"><thead><tr><th class="day-label">Jour</th>`;
-        months.forEach(m => html += `<th>${m}</th>`);
-        html += `</tr></thead><tbody>`;
+        // 1. Charger les jours fériés via l'API
+        let holidays = {};
+        fetch(`https://calendrier.etamine.pub/api/v1/jours-feries/${year}`)
+            .then(res => res.json())
+            .then(data => {
+                holidays = data;
+                drawMatrix(); // Lancer la génération une fois les données reçues
+            })
+            .catch(err => {
+                console.error("Erreur API Fériés:", err);
+                drawMatrix(); // Lancer quand même si l'API échoue
+            });
 
-        for(let d = 1; d <= 31; d++) {
-            html += `<tr><td class="day-label">${d}</td>`;
-            for(let mIdx = 0; mIdx < 12; mIdx++) {
-                let lastDay = new Date(year, mIdx + 1, 0).getDate();
-                
-                if(d > lastDay) {
-                    html += `<td style="background:#eee"></td>`;
-                } else {
-                    let dateStr = `${year}-${String(mIdx+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                    let isWE = ([0, 6].includes(new Date(year, mIdx, d).getDay()));
-                    let event = leaves.find(l => l.start === dateStr);
+        function drawMatrix() {
+            let html = `<table class="matrix-table"><thead><tr><th class="day-label">Jour</th>`;
+            months.forEach(m => html += `<th>${m}</th>`);
+            html += `</tr></thead><tbody>`;
+
+            for(let d = 1; d <= 31; d++) {
+                html += `<tr><td class="day-label">${d}</td>`;
+                for(let mIdx = 0; mIdx < 12; mIdx++) {
+                    let lastDay = new Date(year, mIdx + 1, 0).getDate();
                     
-                    let style = event ? `background-color:${event.backgroundColor};` : "";
-                    
-                    // On prend les 7 premiers caractères du titre
-                    let label = event ? event.title.substring(0, 7) : "";
-                    
-                    html += `<td class="${isWE ? 'is-weekend' : ''} ${event ? 'day-filled' : ''}" style="${style}">
-                                <span class="cell-txt">${label}</span>
-                             </td>`;
+                    if(d > lastDay) {
+                        html += `<td style="background:#eee"></td>`;
+                    } else {
+                        let dateStr = `${year}-${String(mIdx+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                        let isWE = ([0, 6].includes(new Date(year, mIdx, d).getDay()));
+                        
+                        // Priorité : 1. Congés saisis / 2. Jours fériés
+                        let event = leaves.find(l => l.start === dateStr);
+                        let holidayName = holidays[dateStr];
+                        
+                        let style = "";
+                        let label = "";
+
+                        if (event) {
+                            style = `background-color:${event.backgroundColor};`;
+                            label = event.title.substring(0, 7);
+                        } else if (holidayName) {
+                            style = `background-color:#d3d3d3;`; // Gris clair pour les fériés
+                            label = holidayName.substring(0, 7);
+                        }
+                        
+                        html += `<td class="${isWE ? 'is-weekend' : ''} ${event || holidayName ? 'day-filled' : ''}" style="${style}">
+                                    <span class="cell-txt" title="${event ? event.title : (holidayName || '')}">${label}</span>
+                                 </td>`;
+                    }
                 }
+                html += `</tr>`;
             }
-            html += `</tr>`;
+            html += `</tbody></table>`;
+            document.getElementById('matrix-wrapper').innerHTML = html;
         }
-        document.getElementById('matrix-wrapper').innerHTML = html + `</tbody></table>`;
     </script>
 </body>
 </html>
