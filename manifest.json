@@ -1,16 +1,21 @@
 {
   "name": "Mon Planning Congés",
-  "short_name": "Mon Planning",
-  "start_url": "/",
+  "short_name": "Planning",
+  "description": "Gestion de mes congés et RTT",
+  "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#f0f3f7",
-  "theme_color": "#3498db",
+  "background_color": "#2c3e50",
+  "theme_color": "#2c3e50",
   "icons": [
     {
-      "src": "/icon.png",
-      "sizes": "1024x1024",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
     }
   ]
 }
