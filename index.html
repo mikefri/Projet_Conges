@@ -121,11 +121,22 @@
     }
 
     // --- AUTHENTIFICATION ---
-    window.toggleAuthMode = () => {
-        const t = document.getElementById('auth-title'), b = document.getElementById('auth-btn'), l = document.getElementById('toggle-auth');
-        if(b.innerText === "Se connecter") { t.innerText="Inscription"; b.innerText="Créer mon compte"; l.innerText="Déjà inscrit ? Connexion"; }
-        else { t.innerText="Connexion"; b.innerText="Se connecter"; l.innerText="Pas encore de compte ? Créer un profil"; }
-    };
+window.toggleAuthMode = function() {
+    console.log("Clic détecté !");
+    const t = document.getElementById('auth-title');
+    const b = document.getElementById('auth-btn');
+    const l = document.getElementById('toggle-auth');
+    
+    if (b.innerText.includes("connecter")) {
+        t.innerText = "Inscription";
+        b.innerText = "Créer mon compte";
+        l.innerText = "Déjà inscrit ? Connexion";
+    } else {
+        t.innerText = "Connexion";
+        b.innerText = "Se connecter";
+        l.innerText = "Pas encore de compte ? Créer un profil";
+    }
+};
 
     window.handleAuth = async () => {
         const email = document.getElementById('email').value, pass = document.getElementById('password').value;
