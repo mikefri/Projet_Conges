@@ -3,99 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestionnaire de Congés Complet</title>
+    <title>Gestionnaire de Congés Premium</title>
     
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
     
     <style>
-        :root {
-            --primary: #2c3e50;
-            --secondary: #95a5a6;
-            --danger: #e74c3c;
-            --info: #34495e;
-            --bg: #f4f7f6;
-            --sidebar-width: 350px;
-        }
+        :root { --primary: #2c3e50; --secondary: #95a5a6; --danger: #e74c3c; --bg: #f4f7f6; --sidebar-width: 350px; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); overflow: hidden; }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            display: flex;
-            height: 100vh;
-            background-color: var(--bg);
-        }
-
-        #sidebar {
-            width: var(--sidebar-width);
-            background: white;
-            border-right: 1px solid #ddd;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
-        }
-
-        h2, h3 { color: var(--primary); margin-top: 25px; }
-        h2:first-child { margin-top: 0; }
-
-        .quota-card {
-            background: #fff;
-            border: 1px solid #eee;
-            padding: 12px;
-            border-left: 5px solid;
-            margin-bottom: 10px;
-            border-radius: 6px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        .quota-val { font-size: 1.4em; font-weight: bold; color: var(--primary); }
-
-        .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
-        label { font-size: 0.9em; font-weight: 600; color: #555; }
-        input, select, button { padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
+        /* Sidebar */
+        #sidebar { width: var(--sidebar-width); background: white; border-right: 1px solid #ddd; padding: 20px; overflow-y: auto; height: 100vh; box-sizing: border-box; }
+        h2, h3 { color: var(--primary); margin-top: 20px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
         
-        button { cursor: pointer; background: var(--primary); color: white; border: none; font-weight: bold; }
-        button:hover { opacity: 0.9; }
+        .quota-card { background: #fff; border: 1px solid #eee; padding: 10px; border-left: 5px solid; margin-bottom: 10px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .quota-val { font-size: 1.2em; font-weight: bold; }
 
-        #settings-content {
-            background: #f9f9f9;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px dashed #ccc;
-            margin-top: 10px;
-        }
-        .btn-toggle { background: var(--secondary); font-size: 0.7em; padding: 4px 8px; float: right; }
-        .btn-delete-all { background: var(--danger); margin-top: 20px; width: 100%; }
+        .form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+        label { font-size: 0.85em; font-weight: bold; color: #666; }
+        input, select, button { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        button { cursor: pointer; background: var(--primary); color: white; border: none; font-weight: bold; transition: 0.2s; }
+        button:hover { opacity: 0.8; }
 
-        .type-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: white;
-            padding: 5px 10px;
-            margin-bottom: 5px;
-            border-radius: 4px;
-            border: 1px solid #eee;
-        }
-        .btn-remove-type { background: none; color: var(--danger); padding: 0; font-size: 1.2em; }
+        /* Paramétrage */
+        #settings-content { background: #f9f9f9; padding: 12px; border-radius: 8px; border: 1px dashed #ccc; margin-top: 10px; }
+        .type-item { display: flex; justify-content: space-between; align-items: center; background: white; padding: 5px; margin-bottom: 4px; border-radius: 4px; font-size: 0.85em; border: 1px solid #eee; }
+        .btn-toggle { background: var(--secondary); font-size: 0.7em; padding: 3px 6px; float: right; }
 
-        #calendar-container { flex-grow: 1; padding: 25px; background: white; overflow-y: auto; }
-        #calendar { height: 100%; }
+        /* Calendrier */
+        #calendar-container { flex-grow: 1; padding: 20px; background: white; overflow-y: auto; display: flex; flex-direction: column; }
+        #calendar { flex-grow: 1; min-height: 450px; }
 
-        .fc-event-main {
-            color: #000 !important;
-            font-weight: bold !important;
-            padding-left: 4px !important;
-        }
+        /* Grille Matrix Annuelle */
+        #annual-matrix-view { display: none; margin-top: 30px; padding-top: 20px; border-top: 3px solid var(--primary); }
+        .matrix-table { border-collapse: collapse; font-size: 11px; width: 100%; table-layout: fixed; }
+        .matrix-table th, .matrix-table td { border: 1px solid #ddd; padding: 4px 1px; text-align: center; }
+        .matrix-month-name { text-align: left !important; font-weight: bold; width: 80px; padding-left: 5px !important; background: #f8f9fa; }
+        .is-weekend { background-color: #f1f1f1; }
+        .day-filled { font-weight: bold; color: #000; border: 1px solid rgba(0,0,0,0.1); }
 
-        /* Masquer par défaut le champ de texte libre */
-        #custom-info-group { display: none; margin-top: 5px; }
-
-        @media (max-width: 800px) {
-            body { flex-direction: column; }
-            #sidebar { width: auto; height: auto; border-right: none; border-bottom: 1px solid #ddd; }
-        }
+        /* FullCalendar Barres */
+        .fc-event-main { color: #000 !important; font-weight: bold !important; padding-left: 3px !important; }
     </style>
 </head>
 <body>
@@ -106,41 +54,42 @@
 
     <h3>📅 Poser un congé</h3>
     <div class="form-group">
-        <label>Date de début :</label>
-        <input type="date" id="start-date">
-        <label>Date de fin :</label>
-        <input type="date" id="end-date">
-        
+        <label>Du :</label> <input type="date" id="start-date">
+        <label>Au :</label> <input type="date" id="end-date">
         <label>Type :</label>
         <select id="leave-type-select" onchange="checkType()">
-            </select>
-
-        <div id="custom-info-group">
-            <label>Description de l'information :</label>
-            <input type="text" id="custom-info-text" placeholder="Ex: Déplacement, RDV...">
+            <option value="">-- Choisir --</option>
+            <option value="AUTRE_INFO">💡 Information libre</option>
+        </select>
+        <div id="custom-info-group" style="display:none; margin-top:5px;">
+            <label>Texte à afficher :</label>
+            <input type="text" id="custom-info-text" placeholder="Ex: RDV Dentiste">
         </div>
-        
-        <button onclick="addLeaveRange()" style="margin-top:10px;">Enregistrer</button>
+        <button onclick="addLeaveRange()" style="margin-top:10px;">Ajouter</button>
     </div>
 
-    <h3>⚙️ Paramétrage <button class="btn-toggle" onclick="toggleSettings()" id="toggle-btn">Afficher</button></h3>
+    <button onclick="toggleAnnualMatrix()" style="background: #3498db; width: 100%; margin-bottom: 15px;">👁️ Voir Planning Matrix</button>
+
+    <h3>⚙️ Paramètres <button class="btn-toggle" onclick="toggleSettings()" id="toggle-btn">Afficher</button></h3>
     <div id="settings-content" style="display: none;">
-        <div id="types-list-admin" style="margin-bottom: 15px;"></div>
-        <div class="form-group" style="border-top: 1px solid #ddd; pt-10">
-            <label>Nouveau type :</label>
-            <input type="text" id="new-type-name" placeholder="Ex: Congés Payés">
-            <label>Quota annuel :</label>
-            <input type="number" id="new-type-quota" placeholder="25">
-            <label>Couleur :</label>
+        <div id="types-list-admin" style="margin-bottom: 10px;"></div>
+        <div class="form-group">
+            <input type="text" id="new-type-name" placeholder="Nom (Ex: CP)">
+            <input type="number" id="new-type-quota" placeholder="Jours">
             <input type="color" id="new-type-color" value="#e1ff00">
-            <button onclick="saveNewType()" style="background: #27ae60;">Ajouter</button>
+            <button onclick="saveNewType()" style="background: #27ae60;">Créer le type</button>
         </div>
-        <button class="btn-delete-all" onclick="resetAll()">Vider toutes les données</button>
+        <button onclick="resetAll()" style="background:var(--danger); font-size:10px; width:100%;">Réinitialiser Tout</button>
     </div>
 </div>
 
 <div id="calendar-container">
     <div id="calendar"></div>
+    
+    <div id="annual-matrix-view">
+        <h3 style="margin-top:0">📅 Planning Annuel (Matrix)</h3>
+        <div id="matrix-wrapper"></div>
+    </div>
 </div>
 
 <script>
@@ -149,19 +98,15 @@
     let calendar;
 
     document.addEventListener('DOMContentLoaded', function() {
-        const calendarEl = document.getElementById('calendar');
-        calendar = new FullCalendar.Calendar(calendarEl, {
+        calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
             initialView: 'dayGridMonth',
             locale: 'fr',
             firstDay: 1,
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,dayGridYear'
-            },
+            headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,dayGridYear' },
+            buttonText: { today: 'Aujourd\'hui', month: 'Mois', year: 'Année' },
             events: leaves,
             eventClick: function(info) {
-                if(confirm(`Supprimer cet événement ?`)) {
+                if(confirm("Supprimer ce jour ?")) {
                     leaves = leaves.filter(l => !(l.start === info.event.startStr && l.title === info.event.title));
                     saveAndRefresh();
                 }
@@ -169,14 +114,8 @@
         });
         calendar.render();
         updateUI();
+        generateAnnualMatrix();
     });
-
-    // Affiche le champ texte si "Autre" est sélectionné
-    function checkType() {
-        const select = document.getElementById('leave-type-select');
-        const customGroup = document.getElementById('custom-info-group');
-        customGroup.style.display = (select.value === "AUTRE_INFO") ? "block" : "none";
-    }
 
     function toggleSettings() {
         const content = document.getElementById('settings-content');
@@ -185,24 +124,31 @@
         btn.innerText = (content.style.display === "none") ? "Afficher" : "Masquer";
     }
 
+    function toggleAnnualMatrix() {
+        const matrix = document.getElementById('annual-matrix-view');
+        matrix.style.display = (matrix.style.display === "none") ? "block" : "none";
+        if(matrix.style.display === "block") matrix.scrollIntoView({behavior: 'smooth'});
+    }
+
+    function checkType() {
+        document.getElementById('custom-info-group').style.display = (document.getElementById('leave-type-select').value === "AUTRE_INFO") ? "block" : "none";
+    }
+
     function saveNewType() {
         const name = document.getElementById('new-type-name').value.trim();
         const quota = document.getElementById('new-type-quota').value;
         const color = document.getElementById('new-type-color').value;
-        if(!name || !quota) return;
-        config[name] = { quota: parseInt(quota), color: color };
-        localStorage.setItem('leaveConfig', JSON.stringify(config));
-        document.getElementById('new-type-name').value = '';
-        updateUI();
+        if(name && quota) {
+            config[name] = { quota: parseInt(quota), color: color };
+            localStorage.setItem('leaveConfig', JSON.stringify(config));
+            location.reload();
+        }
     }
 
-    function removeType(typeName) {
-        if(confirm(`Supprimer le type "${typeName}" ?`)) {
-            if(confirm(`Supprimer aussi les jours posés de ce type ?`)) {
-                leaves = leaves.filter(l => l.title !== typeName);
-            }
-            delete config[typeName];
-            localStorage.setItem('leaveConfig', JSON.stringify(config));
+    function removeType(t) {
+        if(confirm(`Supprimer le type "${t}" et ses jours posés ?`)) {
+            leaves = leaves.filter(l => l.title !== t);
+            delete config[t];
             saveAndRefresh();
         }
     }
@@ -210,38 +156,24 @@
     function addLeaveRange() {
         const start = document.getElementById('start-date').value;
         const end = document.getElementById('end-date').value;
-        const selectValue = document.getElementById('leave-type-select').value;
-        
-        let finalTitle = selectValue;
-        let finalColor = "#bdc3c7"; // Gris par défaut pour les infos libres
+        const typeSelect = document.getElementById('leave-type-select').value;
+        if(!start || !end || !typeSelect) { alert("Champs manquants"); return; }
 
-        if(selectValue === "AUTRE_INFO") {
-            finalTitle = document.getElementById('custom-info-text').value.trim() || "Info";
-            finalColor = "#ecf0f1"; // Couleur neutre pour les infos
-        } else if(config[selectValue]) {
-            finalColor = config[selectValue].color;
-        } else {
-            alert("Sélectionnez un type."); return;
-        }
-
-        if(!start || !end || start > end) { alert("Dates invalides."); return; }
-
-        let current = new Date(start);
+        let cur = new Date(start);
         let last = new Date(end);
-        while(current <= last) {
-            // Pour les types "Quotas", on exclut les week-ends. 
-            // Pour les "Infos libres", on peut tout inclure (au choix). Ici, j'exclus les WE par défaut.
-            if(current.getDay() !== 0 && current.getDay() !== 6) {
+        while(cur <= last) {
+            if(cur.getDay() !== 0 && cur.getDay() !== 6) {
+                let isCustom = (typeSelect === "AUTRE_INFO");
                 leaves.push({
-                    title: finalTitle,
-                    start: current.toISOString().split('T')[0],
-                    backgroundColor: finalColor,
-                    borderColor: "#bdc3c7",
+                    title: isCustom ? document.getElementById('custom-info-text').value : typeSelect,
+                    start: cur.toISOString().split('T')[0],
+                    backgroundColor: isCustom ? "#ecf0f1" : config[typeSelect].color,
+                    borderColor: "#ddd",
                     allDay: true,
-                    isCustom: (selectValue === "AUTRE_INFO") // Marqueur pour ne pas compter dans les quotas
+                    isCustom: isCustom
                 });
             }
-            current.setDate(current.getDate() + 1);
+            cur.setDate(cur.getDate() + 1);
         }
         saveAndRefresh();
     }
@@ -249,42 +181,58 @@
     function updateUI() {
         const display = document.getElementById('quotas-display');
         const select = document.getElementById('leave-type-select');
-        const adminList = document.getElementById('types-list-admin');
-        
-        display.innerHTML = '';
-        select.innerHTML = '<option value="">-- Choisir --</option>';
-        // AJOUT DE L'OPTION LIBRE
-        select.innerHTML += '<option value="AUTRE_INFO">💡 Événement libre / Information</option>';
-        adminList.innerHTML = '<strong>Types enregistrés :</strong>';
-
+        const admin = document.getElementById('types-list-admin');
         const types = Object.keys(config);
-        types.forEach(type => {
-            // On ne compte que les congés qui ne sont PAS "custom"
-            const used = leaves.filter(l => l.title === type && !l.isCustom).length;
-            
+
+        display.innerHTML = '';
+        admin.innerHTML = '<strong>Types :</strong>';
+
+        types.forEach(t => {
+            const used = leaves.filter(l => l.title === t && !l.isCustom).length;
             display.innerHTML += `
-                <div class="quota-card" style="border-left-color: ${config[type].color}">
-                    <strong>${type}</strong><br>
-                    <span class="quota-val">${config[type].quota - used}</span> / ${config[type].quota} j
+                <div class="quota-card" style="border-left-color:${config[t].color}">
+                    <strong>${t}</strong>: <span class="quota-val">${config[t].quota - used}</span> / ${config[t].quota}j
                 </div>`;
             
-            select.innerHTML += `<option value="${type}">${type}</option>`;
-            adminList.innerHTML += `
+            let opt = document.createElement('option'); opt.value = t; opt.innerText = t; select.appendChild(opt);
+            
+            admin.innerHTML += `
                 <div class="type-item">
-                    <span>${type}</span>
-                    <button class="btn-remove-type" onclick="removeType('${type}')">🗑️</button>
+                    <span>${t}</span>
+                    <button onclick="removeType('${t}')" style="background:none; color:red; padding:0;">🗑️</button>
                 </div>`;
         });
     }
 
-    function saveAndRefresh() {
-        localStorage.setItem('leavesData', JSON.stringify(leaves));
-        location.reload();
+    function generateAnnualMatrix() {
+        const wrapper = document.getElementById('matrix-wrapper');
+        const year = new Date().getFullYear();
+        const months = ["Janv", "Févr", "Mars", "Avril", "Mai", "Juin", "Juil", "Août", "Sept", "Oct", "Nov", "Déc"];
+        
+        let html = `<table class="matrix-table"><thead><tr><th>Mois</th>`;
+        for(let i=1; i<=31; i++) html += `<th>${i}</th>`;
+        html += `</tr></thead><tbody>`;
+
+        months.forEach((month, mIdx) => {
+            html += `<tr><td class="matrix-month-name">${month}</td>`;
+            let daysInMonth = new Date(year, mIdx + 1, 0).getDate();
+            for(let d=1; d<=31; d++) {
+                if(d > daysInMonth) html += `<td style="background:#eee"></td>`;
+                else {
+                    let dateStr = `${year}-${String(mIdx+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                    let isWeekend = ([0, 6].includes(new Date(year, mIdx, d).getDay()));
+                    let found = leaves.find(l => l.start === dateStr);
+                    let style = found ? `background-color:${found.backgroundColor};` : "";
+                    html += `<td class="${isWeekend ? 'is-weekend' : ''} ${found ? 'day-filled' : ''}" style="${style}">${found ? found.title.charAt(0) : ''}</td>`;
+                }
+            }
+            html += `</tr>`;
+        });
+        wrapper.innerHTML = html + `</tbody></table>`;
     }
 
-    function resetAll() {
-        if(confirm("Tout effacer ?")) { localStorage.clear(); location.reload(); }
-    }
+    function saveAndRefresh() { localStorage.setItem('leavesData', JSON.stringify(leaves)); location.reload(); }
+    function resetAll() { if(confirm("Supprimer TOUTES les données ?")) { localStorage.clear(); location.reload(); } }
 </script>
 </body>
 </html>
