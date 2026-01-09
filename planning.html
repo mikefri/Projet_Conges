@@ -2,67 +2,56 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Planning Annuel Matrix - Vue Large</title>
+    <title>Planning Annuel Matrix - Dynamique</title>
     <style>
         :root { --primary: #2c3e50; }
         body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; margin: 0; }
-        
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .btn-back { background: var(--primary); color: white; text-decoration: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; }
-        
         .matrix-container { overflow-x: auto; background: white; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        
         .matrix-table { border-collapse: collapse; width: 100%; min-width: 1200px; table-layout: fixed; }
         .matrix-table th, .matrix-table td { border: 1px solid #ddd; text-align: center; height: 28px; vertical-align: middle; }
-        
         .matrix-table th { background: var(--primary); color: white; padding: 8px 0; font-size: 12px; }
-        
         .day-label { background: #f8f9fa; font-weight: bold; width: 45px; font-size: 11px; }
-        
-        .cell-txt { 
-            font-size: 9px; 
-            font-weight: bold; 
-            text-transform: uppercase; 
-            white-space: nowrap; 
-            overflow: hidden; 
-            display: block;
-            letter-spacing: -0.5px;
-            color: #000; /* Texte noir pour une meilleure lisibilité */
-        }
-
+        .cell-txt { font-size: 9px; font-weight: bold; text-transform: uppercase; white-space: nowrap; overflow: hidden; display: block; letter-spacing: -0.5px; color: #000; }
         .is-weekend { background-color: #f1f4f6; }
         .day-filled { border: 1px solid rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>📅 Planning Annuel 2026</h1>
+        <h1 id="main-title">📅 Planning Annuel</h1>
         <a href="index.html" class="btn-back">⬅ Revenir à la Saisie</a>
     </div>
 
     <div class="matrix-container">
-        <div id="matrix-wrapper">Chargement du planning...</div>
+        <div id="matrix-wrapper">Chargement des données...</div>
     </div>
 
     <script>
         const leaves = JSON.parse(localStorage.getItem('leavesData')) || [];
-        const year = 2026;
+        // On détecte l'année dynamiquement
+        const year = new Date().getFullYear(); 
+        document.getElementById('main-title').innerText = `📅 Planning Annuel ${year}`;
+
         const months = ["Janv", "Févr", "Mars", "Avril", "Mai", "Juin", "Juil", "Août", "Sept", "Oct", "Nov", "Déc"];
 
-        // 1. Charger les jours fériés via l'API
-        let holidays = {};
-        fetch(`https://calendrier.etamine.pub/api/v1/jours-feries/${year}`)
-            .then(res => res.json())
-            .then(data => {
-                holidays = data;
-                drawMatrix(); // Lancer la génération une fois les données reçues
-            })
-            .catch(err => {
-                console.error("Erreur API Fériés:", err);
-                drawMatrix(); // Lancer quand même si l'API échoue
-            });
+        // Utilisation de l'API Gouv.fr (plus fiable et CORS-friendly)
+        async function loadHolidaysAndDraw() {
+            let holidays = {};
+            try {
+                // API Gouv.fr pour la France métropolitaine
+                const response = await fetch(`https://calendrier.etamine.pub/api/v1/jours-feries/${year}`);
+                if (response.ok) {
+                    holidays = await response.json();
+                }
+            } catch (err) {
+                console.error("L'API n'a pas pu être contactée, vérifiez votre connexion.");
+            }
+            drawMatrix(holidays);
+        }
 
-        function drawMatrix() {
+        function drawMatrix(holidays) {
             let html = `<table class="matrix-table"><thead><tr><th class="day-label">Jour</th>`;
             months.forEach(m => html += `<th>${m}</th>`);
             html += `</tr></thead><tbody>`;
@@ -71,14 +60,11 @@
                 html += `<tr><td class="day-label">${d}</td>`;
                 for(let mIdx = 0; mIdx < 12; mIdx++) {
                     let lastDay = new Date(year, mIdx + 1, 0).getDate();
-                    
                     if(d > lastDay) {
                         html += `<td style="background:#eee"></td>`;
                     } else {
                         let dateStr = `${year}-${String(mIdx+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
                         let isWE = ([0, 6].includes(new Date(year, mIdx, d).getDay()));
-                        
-                        // Priorité : 1. Congés saisis / 2. Jours fériés
                         let event = leaves.find(l => l.start === dateStr);
                         let holidayName = holidays[dateStr];
                         
@@ -89,20 +75,21 @@
                             style = `background-color:${event.backgroundColor};`;
                             label = event.title.substring(0, 7);
                         } else if (holidayName) {
-                            style = `background-color:#d3d3d3;`; // Gris clair pour les fériés
+                            style = `background-color:#d3d3d3;`; 
                             label = holidayName.substring(0, 7);
                         }
                         
                         html += `<td class="${isWE ? 'is-weekend' : ''} ${event || holidayName ? 'day-filled' : ''}" style="${style}">
-                                    <span class="cell-txt" title="${event ? event.title : (holidayName || '')}">${label}</span>
+                                    <span class="cell-txt">${label}</span>
                                  </td>`;
                     }
                 }
                 html += `</tr>`;
             }
-            html += `</tbody></table>`;
-            document.getElementById('matrix-wrapper').innerHTML = html;
+            document.getElementById('matrix-wrapper').innerHTML = html + `</tbody></table>`;
         }
+
+        loadHolidaysAndDraw();
     </script>
 </body>
 </html>
