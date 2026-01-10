@@ -62,10 +62,13 @@
         
         /* LAYOUT PRINCIPAL */
         #main-app { display: none; }
-        .header { 
-    display: flex; 
-    justify-content: space-between; /* Pousse les blocs aux extrémités */
-    align-items: center; 
+.header { 
+    display: flex;
+    background: #e9ecef; /* La couleur grise demandée */
+    justify-content: space-between; 
+    align-items: center;
+    padding: 10px 20px; /* Ajoute un peu d'espace interne */
+    border-bottom: 1px solid #ddd; /* Optionnel : une fine ligne de séparation */
 }
         .header-left { display: flex; align-items: center; gap: 15px; }
         .app-container { display: flex; height: calc(100vh - 60px); }
