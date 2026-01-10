@@ -233,7 +233,7 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
     let calendar;
-    let userData = { leaves: [], config: { "CP": {quota:25, color:"#3498db"}, "RTT": {quota:10, color:"#e1ff00"} } };
+    let userData = { leaves: [], config: {} };
 
     // --- FONCTION JOURS FERIES (Calcul complet) ---
     function getHolidays(y) {
