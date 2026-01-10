@@ -170,6 +170,7 @@
     <div class="header-left">
         <span>👤 <strong id="user-display"></strong></span>
         <button id="logout-btn" style="background:var(--danger); color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer; margin-left:10px;">Déconnexion</button>
+        <button id="help-btn" style="background:var(--info); color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer; margin-left:10px;">❓ Aide</button>
     </div>
     <a href="planning.html" class="btn-nav">📅 Planning Global</a>
 </div>
@@ -465,6 +466,46 @@ document.getElementById('reset-year-btn').onclick = async () => {
             alert("Erreur lors de la déconnexion : " + err.message);
         }
     };
+    // --- MODAL D'AIDE DETAILLÉ ---
+document.getElementById('help-btn').onclick = () => {
+    Swal.fire({
+        title: '<strong>📖 Guide de l\'utilisateur</strong>',
+        icon: 'info',
+        width: '600px',
+        html: `
+            <div style="text-align: left; font-size: 0.85em; line-height: 1.6; max-height: 400px; overflow-y: auto;">
+                <h4 style="color:var(--primary); border-bottom: 1px solid #eee; padding-bottom: 5px;">📊 Gestion des Compteurs</h4>
+                <p>Puisque votre compte est neuf, commencez par créer vos types de congés dans la section <strong>⚙️ Configuration</strong> (en bas de la barre latérale) :</p>
+                <ul>
+                    <li><strong>Nom :</strong> Ex: "CP", "RTT", "Récup".</li>
+                    <li><strong>Quota :</strong> Nombre de jours alloués pour l'année.</li>
+                    <li><strong>Couleur :</strong> Personnalisez l'affichage sur le calendrier.</li>
+                    <li><strong>Supprimer :</strong> L'icône 🗑️ retire le type et tous ses jours posés.</li>
+                </ul>
+
+                <h4 style="color:var(--primary); border-bottom: 1px solid #eee; padding-bottom: 5px;">📅 Poser des Jours</h4>
+                <ul>
+                    <li><strong>Sélection :</strong> Choisissez une date de début et de fin.</li>
+                    <li><strong>Automatisme :</strong> Le système <strong>ignore automatiquement</strong> les week-ends (Samedi/Dimanche).</li>
+                    <li><strong>Info Libre :</strong> Pour noter un événement (ex: "Télétravail") sans impacter vos quotas de congés.</li>
+                </ul>
+
+                <h4 style="color:var(--primary); border-bottom: 1px solid #eee; padding-bottom: 5px;">🖱️ Interactions</h4>
+                <ul>
+                    <li><strong>Suppression :</strong> Cliquez simplement sur un congé dans le calendrier pour l'effacer.</li>
+                    <li><strong>Vues :</strong> Basculez entre l'affichage "Mois" et "Année" avec les boutons en haut à droite.</li>
+                </ul>
+
+                <h4 style="color:var(--danger); border-bottom: 1px solid #eee; padding-bottom: 5px;">🚨 Maintenance</h4>
+                <ul>
+                    <li><strong>Réinitialiser l'année :</strong> Efface TOUS vos congés et remet vos compteurs à leur valeur initiale (utile au 1er janvier).</li>
+                </ul>
+            </div>
+        `,
+        confirmButtonText: 'J\'ai compris',
+        confirmButtonColor: '#2c3e50'
+    });
+};
 </script>
 </body>
 </html>
