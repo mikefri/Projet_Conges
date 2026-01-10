@@ -132,6 +132,23 @@
     border-radius: 6px;
     box-sizing: border-box; /* Important pour que le padding ne dépasse pas */
 }
+        /* Style pour l'icône dans la boîte d'auth */
+.auth-logo {
+    width: 80px;           /* Taille de l'icône */
+    height: 80px;
+    border-radius: 50%;    /* Rend l'icône ronde */
+    background: #fff;
+    padding: 5px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* Petit effet d'ombre */
+    margin-top: -60px;     /* Fait dépasser l'icône légèrement en haut */
+    border: 4px solid white;
+}
+
+/* Ajustement de la boîte pour laisser de la place à l'icône qui dépasse */
+.auth-box {
+    margin-top: 30px; 
+    position: relative;
+}
     </style>
 </head>
 <body>
@@ -139,6 +156,7 @@
 <div id="auth-container">
     <h1 class="app-main-title">🌴 Mon Planning Congés</h1>
     <div class="auth-box">
+        <img src="icon.png" alt="Logo" class="auth-logo">
         <h2 id="auth-title">Connexion</h2>
         <input type="email" id="email" placeholder="Email">
         <input type="password" id="password" placeholder="Mot de passe">
