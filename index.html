@@ -305,13 +305,36 @@ onAuthStateChanged(auth, (user) => {
                     const src = calendar.getEventSourceById('feries'); if(src) src.remove();
                     calendar.addEventSource({ id:'feries', events: Object.keys(h).map(d=>({title:h[d], start:d, display:'background', backgroundColor:'#eeeeee'}))});
                 },
-                eventClick: async (info) => {
-                    if(info.event.display === 'background') return;
-                    if(confirm("Supprimer ce jour ?")) {
-                        userData.leaves = userData.leaves.filter(l => !(l.start === info.event.startStr && l.title === info.event.title));
-                        await setDoc(doc(db, "users", uid), userData);
-                    }
-                }
+eventClick: async (info) => {
+    if(info.event.display === 'background') return;
+
+    Swal.fire({
+        title: 'Supprimer ce jour ?',
+        text: `Voulez-vous retirer "${info.event.title}" du calendrier ?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#e74c3c', // Rouge danger
+        cancelButtonColor: '#95a5a6',
+        confirmButtonText: 'Oui, supprimer',
+        cancelButtonText: 'Annuler'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            // Logique de suppression
+            userData.leaves = userData.leaves.filter(l => !(l.start === info.event.startStr && l.title === info.event.title));
+            
+            // Mise à jour Firebase
+            await setDoc(doc(db, "users", auth.currentUser.uid), userData);
+            
+            // Petit message de confirmation (optionnel)
+            Swal.fire({
+                title: 'Supprimé !',
+                icon: 'success',
+                timer: 1000,
+                showConfirmButton: false
+            });
+        }
+    });
+}
             });
             calendar.render();
         }
