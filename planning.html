@@ -30,31 +30,45 @@
     .btn-export:hover { background: #219150; }
     
     /* Style pour optimiser l'impression PDF */
+/* Masquer le titre PDF sur la page Web normale */
+.only-pdf { 
+    display: none; 
+}
+
 /* CLASSE SPECIALE EXPORT (activée via JS) */
-    .pdf-export-mode .matrix-table {
-        width: 100% !important;
-        min-width: 100% !important;
-        table-layout: fixed !important;
-    }
+.pdf-export-mode .only-pdf { 
+    display: block !important; 
+    text-align: center;
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #2c3e50;
+    font-weight: bold;
+}
 
-    .pdf-export-mode .matrix-table td, 
-    .pdf-export-mode .matrix-table th {
-        height: 18px !important; /* Hauteur réduite pour que 31 lignes tiennent sur un A4 */
-        font-size: 8px !important;
-        padding: 0 !important;
-    }
+.pdf-export-mode .matrix-table {
+    width: 100% !important;
+    min-width: 100% !important;
+    table-layout: fixed !important;
+}
 
-    .pdf-export-mode .cell-txt {
-        font-size: 7px !important;
-        line-height: 1 !important;
-    }
+.pdf-export-mode .matrix-table td, 
+.pdf-export-mode .matrix-table th {
+    height: 17px !important; /* Réduit à 17px pour laisser de la place au titre */
+    font-size: 8px !important;
+    padding: 0 !important;
+}
 
-    /* Supprimer la page blanche fantôme */
-    .pdf-export-mode {
-        margin: 0 !important;
-        padding: 0 !important;
-        height: auto !important;
-    }
+.pdf-export-mode .cell-txt {
+    font-size: 7px !important;
+    line-height: 1 !important;
+}
+
+/* Supprimer la page blanche fantôme et ajuster les marges d'export */
+.pdf-export-mode {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+}
         
     </style>
 </head>
@@ -155,26 +169,33 @@
         // fonction export PDF 
        window.exportToPDF = function() {
     const element = document.getElementById('matrix-wrapper');
+    const year = new Date().getFullYear();
     
-    // On ajoute temporairement une classe pour forcer les dimensions PDF
+    // Création du titre pour le PDF
+    const pdfTitle = document.createElement('h2');
+    pdfTitle.innerText = `Planning Annuel des Congés - Année ${year}`;
+    pdfTitle.style.textAlign = 'center';
+    pdfTitle.style.marginBottom = '15px';
+    pdfTitle.style.color = '#2c3e50';
+    pdfTitle.classList.add('only-pdf'); // Classe pour le contrôle CSS
+
+    // On insère le titre au début du wrapper
+    element.prepend(pdfTitle);
     element.classList.add('pdf-export-mode');
 
     const opt = {
-        margin: [5, 5, 5, 5],
-        filename: `Planning_${new Date().getFullYear()}.pdf`,
+        margin: [10, 5, 10, 5],
+        filename: `Planning_${year}.pdf`,
         image: { type: 'jpeg', quality: 1 },
-        html2canvas: { 
-            scale: 2, 
-            useCORS: true,
-            letterRendering: true
-        },
+        html2canvas: { scale: 2, useCORS: true },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
-        pagebreak: { mode: 'avoid-all' } // Empêche strictement la coupure
+        pagebreak: { mode: 'avoid-all' }
     };
 
     html2pdf().set(opt).from(element).save().then(() => {
-        // On retire la classe après l'export
+        // Nettoyage après export
         element.classList.remove('pdf-export-mode');
+        pdfTitle.remove();
     });
 };
     </script>
