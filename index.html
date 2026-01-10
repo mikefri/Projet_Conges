@@ -38,6 +38,7 @@
 
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root { --primary: #2c3e50; --bg: #f4f7f6; --danger: #e74c3c; --success: #27ae60; --info: #3498db; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: #333; }
@@ -228,13 +229,21 @@
         else { t.innerText="Connexion"; b.innerText="Se connecter"; l.innerText="Créer un compte"; }
     };
 
-    document.getElementById('auth-btn').onclick = async () => {
-        const e = document.getElementById('email').value, p = document.getElementById('password').value;
-        try {
-            if(document.getElementById('auth-btn').innerText === "Se connecter") await signInWithEmailAndPassword(auth, e, p);
-            else await createUserWithEmailAndPassword(auth, e, p);
-        } catch(err) { alert("Erreur : " + err.message); }
-    };
+document.getElementById('auth-btn').onclick = async () => {
+    const e = document.getElementById('email').value, p = document.getElementById('password').value;
+    try {
+        if(document.getElementById('auth-btn').innerText === "Se connecter") await signInWithEmailAndPassword(auth, e, p);
+        else await createUserWithEmailAndPassword(auth, e, p);
+    } catch(err) {
+        // --- REMPLACEMENT ICI ---
+        Swal.fire({
+            icon: 'error',
+            title: 'Oups...',
+            text: 'Erreur : ' + err.message,
+            confirmButtonColor: '#2c3e50'
+        });
+    }
+};
 
 onAuthStateChanged(auth, (user) => {
     const authContainer = document.getElementById('auth-container');
@@ -308,13 +317,26 @@ onAuthStateChanged(auth, (user) => {
             const delBtn = document.createElement('button');
             delBtn.innerText = '🗑️';
             delBtn.style = 'background:none; border:none; cursor:pointer; color:red; font-size:1.2em;';
-            delBtn.onclick = async () => {
-                if(confirm(`Supprimer le type "${t}" et TOUS les congés associés ?`)) {
-                    userData.leaves = userData.leaves.filter(l => l.title !== t);
-                    delete userData.config[t];
-                    await setDoc(doc(db, "users", auth.currentUser.uid), userData);
-                }
-            };
+delBtn.onclick = () => {
+    Swal.fire({
+        title: 'Êtes-vous sûr ?',
+        text: `Supprimer le type "${t}" et TOUS les congés associés ?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#e74c3c', // Rouge danger
+        cancelButtonColor: '#95a5a6',
+        confirmButtonText: 'Oui, supprimer',
+        cancelButtonText: 'Annuler'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            userData.leaves = userData.leaves.filter(l => l.title !== t);
+            delete userData.config[t];
+            await setDoc(doc(db, "users", auth.currentUser.uid), userData);
+            
+            Swal.fire('Supprimé !', 'Le type a été retiré.', 'success');
+        }
+    });
+};
             row.appendChild(delBtn);
             a.appendChild(row);
         });
@@ -347,7 +369,15 @@ onAuthStateChanged(auth, (user) => {
 
     document.getElementById('add-leave-btn').onclick = async () => {
         const start = document.getElementById('start-date').value, end = document.getElementById('end-date').value, type = document.getElementById('leave-type-select').value;
-        if(!start || !type) return alert("Veuillez remplir les dates et le type.");
+        if(!start || !type) {
+        // --- REMPLACEMENT ICI ---
+        return Swal.fire({
+            icon: 'warning',
+            title: 'Attention',
+            text: 'Veuillez remplir les dates et le type.',
+            confirmButtonColor: '#2c3e50'
+        });
+    }
         
         let cur = new Date(start), last = new Date(end || start);
         while(cur <= last) {
