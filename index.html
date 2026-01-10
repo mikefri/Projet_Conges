@@ -234,6 +234,11 @@
         if(!calendar) {
             calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
                 initialView:'dayGridMonth', locale:'fr', firstDay:1,
+                                buttonText: {
+                today:    "Jour",
+                month:    "Mois",
+                year:     "Année"
+            },
                 headerToolbar: { left:'prev,next today', center:'title', right:'dayGridMonth,dayGridYear' },
                 datesSet: (info) => {
                     const h = getHolidays(info.view.currentStart.getFullYear());
