@@ -41,6 +41,19 @@
     <style>
         :root { --primary: #2c3e50; --bg: #f4f7f6; --danger: #e74c3c; --success: #27ae60; --info: #3498db; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: #333; }
+
+
+#auth-container { 
+    display: none; /* Change "flex" par "none" ici */
+    justify-content: center; 
+    align-items: center; 
+    height: 100vh; 
+    background: var(--primary); 
+    position: fixed; 
+    width: 100%; 
+    top: 0; 
+    z-index: 9999; 
+}
         
         /* ZONE AUTHENTIFICATION */
         #auth-container { display: flex; justify-content: center; align-items: center; height: 100vh; background: var(--primary); position: fixed; width: 100%; top: 0; z-index: 9999; }
