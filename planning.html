@@ -31,12 +31,25 @@
     
     /* Style pour optimiser l'impression PDF */
 @media print {
-        .matrix-table th, .matrix-table td { 
-            height: 18px !important; /* Réduit la hauteur des lignes */
-            font-size: 8px !important; 
-        }
-        .cell-txt { font-size: 7px !important; }
+    /* Réduit la hauteur des lignes uniquement lors de l'export */
+    .matrix-table th, .matrix-table td {
+        height: 18px !important; 
+        line-height: 18px !important;
+        padding: 0 !important;
     }
+    
+    /* Réduit la taille du texte pour éviter les débordements */
+    .cell-txt {
+        font-size: 7px !important;
+        display: block;
+        width: 100%;
+    }
+
+    .day-label {
+        font-size: 9px !important;
+        width: 30px !important;
+    }
+}
         
     </style>
 </head>
@@ -138,39 +151,33 @@
         window.exportToPDF = function() {
     const element = document.getElementById('matrix-wrapper');
     
-    // Configuration de l'export
     const opt = {
-        margin: [5, 5, 5, 5],
+        margin: [5, 2, 5, 2], // Marges très réduites (5mm haut/bas, 2mm côtés)
         filename: `Planning_${new Date().getFullYear()}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { 
-            scale: 2, // Meilleure résolution
+            scale: 2, // Garde une bonne netteté malgré la réduction
             useCORS: true 
         },
         jsPDF: { 
             unit: 'mm', 
             format: 'a4', 
-            orientation: 'landscape' 
+            orientation: 'landscape' // Le mode paysage reste le plus adapté aux 12 colonnes
         }
     };
 
-    // --- ASTUCE POUR TOUT FAIRE TENIR SUR UNE PAGE ---
-    // 1. On sauvegarde le style original
-    const originalTransform = element.style.transform;
-    const originalTransformOrigin = element.style.transformOrigin;
-    const originalWidth = element.style.width;
+    // --- LOGIQUE DE REDUCTION POUR UNE PAGE UNIQUE ---
+    const originalStyle = element.style.cssText;
 
-    // 2. On réduit visuellement le tableau pour l'export (80% de sa taille)
-    element.style.transform = "scale(0.85)"; 
+    // On réduit l'échelle à 70% pour que les 31 lignes tiennent en hauteur
+    // On élargit un peu le conteneur pour que les 12 mois tiennent en largeur
+    element.style.transform = "scale(0.70)";
     element.style.transformOrigin = "top left";
-    element.style.width = "1150px"; // On fixe la largeur pour éviter les coupures
+    element.style.width = "1350px"; 
 
-    // 3. On génère le PDF
     html2pdf().set(opt).from(element).save().then(() => {
-        // 4. On remet le style d'origine après l'export
-        element.style.transform = originalTransform;
-        element.style.transformOrigin = originalTransformOrigin;
-        element.style.width = originalWidth;
+        // On remet le style normal sur la page web après l'export
+        element.style.cssText = originalStyle;
     });
 };
     </script>
