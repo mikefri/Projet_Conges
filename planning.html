@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Planning Matrix - Vue Annuelle</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root { --primary: #2c3e50; }
         body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; margin: 0; }
@@ -15,11 +16,66 @@
         .day-label { background: #f8f9fa; font-weight: bold; width: 45px; font-size: 11px; }
         .cell-txt { font-size: 9px; font-weight: bold; text-transform: uppercase; white-space: nowrap; overflow: hidden; display: block; letter-spacing: -0.5px; color: #000; }
         .is-weekend { background-color: #f1f4f6; }
+        /* Nouveau style pour le bouton export */
+    .btn-export { 
+        background: #27ae60; 
+        color: white; 
+        border: none; 
+        padding: 10px 20px; 
+        border-radius: 5px; 
+        font-weight: bold; 
+        cursor: pointer; 
+        margin-left: 10px;
+    }
+    .btn-export:hover { background: #219150; }
+    
+    /* Style pour optimiser l'impression PDF */
+/* Masquer le titre PDF sur la page Web normale */
+.only-pdf { 
+    display: none; 
+}
+
+/* CLASSE SPECIALE EXPORT (activée via JS) */
+.pdf-export-mode .only-pdf { 
+    display: block !important; 
+    text-align: center;
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #2c3e50;
+    font-weight: bold;
+}
+
+.pdf-export-mode .matrix-table {
+    width: 100% !important;
+    min-width: 100% !important;
+    table-layout: fixed !important;
+}
+
+.pdf-export-mode .matrix-table td, 
+.pdf-export-mode .matrix-table th {
+    height: 17px !important; /* Réduit à 17px pour laisser de la place au titre */
+    font-size: 8px !important;
+    padding: 0 !important;
+}
+
+.pdf-export-mode .cell-txt {
+    font-size: 7px !important;
+    line-height: 1 !important;
+}
+
+/* Supprimer la page blanche fantôme et ajuster les marges d'export */
+.pdf-export-mode {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+}
+        
     </style>
 </head>
 <body>
     <div class="header">
         <h1 id="year-title">📅 Planning</h1>
+        <button onclick="exportToPDF()" class="btn-export">📥 Exporter PDF</button>
         <a href="index.html" class="btn-back">⬅ Retour Saisie</a>
     </div>
     <div class="matrix-container"><div id="matrix-wrapper">En attente de connexion...</div></div>
@@ -109,6 +165,39 @@
             }
             document.getElementById('matrix-wrapper').innerHTML = html + `</tbody></table>`;
         }
+
+        // fonction export PDF 
+       window.exportToPDF = function() {
+    const element = document.getElementById('matrix-wrapper');
+    const year = new Date().getFullYear();
+    
+    // Création du titre pour le PDF
+    const pdfTitle = document.createElement('h2');
+    pdfTitle.innerText = `Planning Annuel des Congés - Année ${year}`;
+    pdfTitle.style.textAlign = 'center';
+    pdfTitle.style.marginBottom = '15px';
+    pdfTitle.style.color = '#2c3e50';
+    pdfTitle.classList.add('only-pdf'); // Classe pour le contrôle CSS
+
+    // On insère le titre au début du wrapper
+    element.prepend(pdfTitle);
+    element.classList.add('pdf-export-mode');
+
+    const opt = {
+        margin: [10, 5, 10, 5],
+        filename: `Planning_${year}.pdf`,
+        image: { type: 'jpeg', quality: 1 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+        pagebreak: { mode: 'avoid-all' }
+    };
+
+    html2pdf().set(opt).from(element).save().then(() => {
+        // Nettoyage après export
+        element.classList.remove('pdf-export-mode');
+        pdfTitle.remove();
+    });
+};
     </script>
 </body>
 </html>
