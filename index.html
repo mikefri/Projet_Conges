@@ -2,74 +2,95 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="MonPlanning">
-<meta name="theme-color" content="#2c3e50">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MonPlanning">
+    <meta name="theme-color" content="#2c3e50">
 
-<title>Mon Planning Congés</title>
-<meta name="description" content="Gérez vos congés, RTT et plannings annuels de manière simple et sécurisée avec cette interface PWA légère.">
-<meta name="keywords" content="planning, congés, RTT, gestion vacances, calendrier interactif, PWA">
-<meta name="author" content="Mikefri">
-<meta name="robots" content="index, follow">
+    <title>Mon Planning Congés</title>
+    <meta name="description" content="Gérez vos congés, RTT et plannings annuels de manière simple et sécurisée.">
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.png">
+    <link rel="icon" type="image/png" href="icon.png">
 
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://mikefri.github.io/Projet_Conges/index.html">
-<meta property="og:title" content="🌴 Mon Planning Congés">
-<meta property="og:description" content="L'interface web rapide pour organiser vos vacances. Installez-la sur votre écran d'accueil.">
-<meta property="og:image" content="icon.png">
-
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Mon Planning Congés">
-<meta name="twitter:description" content="Organisez vos jours de repos en toute simplicité.">
-<meta name="twitter:image" content="icon.png">
-
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon.png">
-<link rel="icon" type="image/png" href="icon.png">
-
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js')
-      .then(() => console.log("Service Worker Planning Enregistré"));
-  }
-</script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js')
+          .then(() => console.log("Service Worker Planning Enregistré"))
+          .catch(err => console.log("Erreur SW:", err));
+      }
+    </script>
 
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <style>
         :root { --primary: #2c3e50; --bg: #f4f7f6; --danger: #e74c3c; --success: #27ae60; --info: #3498db; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: #333; }
 
-
-#auth-container { 
-    display: none; /* Change "flex" par "none" ici */
-    justify-content: center; 
-    align-items: center; 
-    height: 100vh; 
-    background: var(--primary); 
-    position: fixed; 
-    width: 100%; 
-    top: 0; 
-    z-index: 9999; 
-}
-        
         /* ZONE AUTHENTIFICATION */
-        #auth-container { display: flex; justify-content: center; align-items: center; height: 100vh; background: var(--primary); position: fixed; width: 100%; top: 0; z-index: 9999; }
-        .auth-box { background: white; padding: 30px; border-radius: 12px; width: 320px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
-        .auth-box input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        #auth-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #2c3e50;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 9999;
+        }
         
+        .app-main-title {
+            color: white;
+            font-size: 2.8em;
+            margin-bottom: 20px;
+            font-weight: 800;
+            text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+        }
+
+        .auth-box {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 350px;
+            text-align: center;
+            margin-top: 30px; 
+            position: relative;
+        }
+
+        .auth-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #fff;
+            padding: 5px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin-top: -60px;
+            border: 4px solid white;
+        }
+
+        .auth-box input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+
         /* LAYOUT PRINCIPAL */
         #main-app { display: none; }
+        
         .header { 
-    display: flex;
-    background: #e9ecef;       
-    justify-content: space-between; /* Pousse les blocs aux extrémités */
-    align-items: center; 
-}
+            display: flex;
+            background: #e9ecef;        
+            justify-content: space-between;
+            align-items: center; 
+            padding: 0 10px;
+            height: 60px;
+        }
         .header-left { display: flex; align-items: center; gap: 15px; }
+        
         .app-container { display: flex; height: calc(100vh - 60px); }
         
         /* SIDEBAR */
@@ -78,6 +99,7 @@
         
         /* FORMULAIRES */
         input[type="date"], select, input[type="text"], input[type="number"] { width: 100%; padding: 10px; margin: 5px 0 15px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        
         .btn-action { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 10px; }
         
         .btn-nav { background: var(--info); color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; text-decoration: none; font-size: 0.85em; display: inline-flex; align-items: center; gap: 5px; }
@@ -89,67 +111,37 @@
         
         #calendar-container { flex-grow: 1; padding: 20px; background: white; overflow-y: auto; }
         .btn-toggle { font-size: 0.75em; background: #95a5a6; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; float: right; }
+        
         /* Force le texte en noir pour tous les événements du calendrier */
-.fc-event-title, .fc-event-main {
-    color: #000000 !important;
-}
-        /* Le conteneur qui centre tout */
-#auth-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    background: #2c3e50; /* Bleu nuit comme sur ta capture */
-}
-
-/* Le grand titre palmier */
-.app-main-title {
-    color: white;
-    font-size: 2.8em;
-    margin-bottom: 20px;
-    font-weight: 800;
-    text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
-}
-
-/* La boîte blanche de connexion */
-.auth-box {
-    background: white;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    width: 100%;
-    max-width: 350px;
-    text-align: center;
-}
-
-/* Les champs de texte dans la boîte */
-.auth-box input {
-    width: 100%;
-    padding: 12px;
-    margin: 10px 0;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    box-sizing: border-box; /* Important pour que le padding ne dépasse pas */
-}
-        /* Style pour l'icône dans la boîte d'auth */
-.auth-logo {
-    width: 80px;           /* Taille de l'icône */
-    height: 80px;
-    border-radius: 50%;    /* Rend l'icône ronde */
-    background: #fff;
-    padding: 5px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* Petit effet d'ombre */
-    margin-top: -60px;     /* Fait dépasser l'icône légèrement en haut */
-    border: 4px solid white;
-}
-
-/* Ajustement de la boîte pour laisser de la place à l'icône qui dépasse */
-.auth-box {
-    margin-top: 30px; 
-    position: relative;
-}
+        .fc-event-title, .fc-event-main { color: #000000 !important; }
+        
         #help-btn:hover { background: var(--info) !important; color: white !important; }
+
+        /* Styles spécifiques pour les boutons radio de durée */
+        .duration-group {
+            margin-bottom: 15px;
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+        }
+        .duration-options {
+            display: flex;
+            gap: 15px;
+            margin-top: 5px;
+        }
+        .radio-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        .radio-label input {
+            width: auto;
+            margin-right: 5px;
+            margin-top: 0;
+            margin-bottom: 0;
+        }
     </style>
 </head>
 <body>
@@ -158,7 +150,7 @@
     <h1 class="app-main-title">🌴 Mon Planning Congés</h1>
     
     <div class="auth-box">
-        <img src="icon.png" alt="Logo" class="auth-logo">
+        <img src="icon.png" alt="Logo" class="auth-logo" onerror="this.src='https://via.placeholder.com/80?text=Icon'">
         <h2 id="auth-title">Connexion</h2>
         <input type="email" id="email" placeholder="Email">
         <input type="password" id="password" placeholder="Mot de passe">
@@ -167,28 +159,27 @@
     </div>
 
     <div style="margin-top: 25px; color: rgba(255,255,255,0.7); font-size: 0.8em; text-align: center; max-width: 320px;">
-        <div style="font-weight: bold; margin-bottom: 10px; color: white;">Version 1.2.0</div>
+        <div style="font-weight: bold; margin-bottom: 10px; color: white;">Version 1.3.0</div>
         
         <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; text-align: left;">
-            <strong style="display: block; margin-bottom: 5px; color: #3498db;">🚀 Prochaines évolutions :</strong>
+            <strong style="display: block; margin-bottom: 5px; color: #3498db;">🚀 Nouveautés :</strong>
             <ul style="margin: 0; padding-left: 18px; list-style-type: '→ ';">
-                <li style="margin-bottom: 5px;">✅ Gestion des demi-journées</li>
-                <li style="margin-bottom: 5px; color: #f1c40f;">⏳ **Gestion d'une équipe**</li>
-                               
+                <li style="margin-bottom: 5px;">✅ Précision Matin / Après-midi</li>
+                <li style="margin-bottom: 5px; color: #f1c40f;">⏳ Gestion d'équipe (bientôt)</li>
             </ul>
         </div>
     </div>
 </div>
 
 <div id="main-app">
-<div class="header">
-    <div class="header-left">
-        <span>👤 <strong id="user-display"></strong></span>
-        <button id="logout-btn" style="background:var(--danger); color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer; margin-left:10px;">Déconnexion</button>
-        <button id="help-btn" title="Aide" style="background:none; color:var(--info); border:2px solid var(--info); width:30px; height:30px; border-radius:50%; cursor:pointer; margin-left:10px; font-weight:bold; display:flex; align-items:center; justify-content:center; padding:0;">?</button>
+    <div class="header">
+        <div class="header-left">
+            <span>👤 <strong id="user-display"></strong></span>
+            <button id="logout-btn" style="background:var(--danger); color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer; margin-left:10px;">Déconnexion</button>
+            <button id="help-btn" title="Aide" style="background:none; color:var(--info); border:2px solid var(--info); width:30px; height:30px; border-radius:50%; cursor:pointer; margin-left:10px; font-weight:bold; display:flex; align-items:center; justify-content:center; padding:0;">?</button>
+        </div>
+        <a href="planning.html" class="btn-nav">📅 Planning Global</a>
     </div>
-    <a href="planning.html" class="btn-nav">📅 Planning Global</a>
-</div>
 
     <div class="app-container">
         <div id="sidebar">
@@ -198,19 +189,33 @@
             <hr>
             <h3>📅 Poser un congé</h3>
             <label>Du :</label> <input type="date" id="start-date">
-            <label>Au :</label> <input type="date" id="end-date">
+            <label id="end-date-label">Au :</label> <input type="date" id="end-date">
+            
             <label>Type :</label>
             <select id="leave-type-select">
                 <option value="">-- Choisir --</option>
                 <option value="INFO_LIBRE">💡 Information libre</option>
             </select>
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-bottom: 10px;">
-            <input type="checkbox" id="half-day-check" style="width: auto; margin: 0;"> 
-            <span>Matin ou Après-midi (0.5j)</span>
-            </label>
+
+            <div class="duration-group">
+                <label style="font-weight:bold; font-size:0.9em;">Durée :</label>
+                <div class="duration-options">
+                    <label class="radio-label">
+                        <input type="radio" name="duration" value="full" checked> Journée
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="duration" value="am"> Matin
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="duration" value="pm"> Après-midi
+                    </label>
+                </div>
+            </div>
+
             <div id="custom-info-group" style="display:none;">
                 <input type="text" id="custom-info-text" placeholder="Titre (ex: Formation)">
             </div>
+            
             <button class="btn-action" id="add-leave-btn">Enregistrer les jours</button>
 
             <h3 style="margin-top:20px;">⚙️ Configuration <span class="btn-toggle" id="toggle-settings-btn">Afficher</span></h3>
@@ -225,7 +230,6 @@
                 <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ddd;">
                 <button id="reset-year-btn" class="btn-action" style="background: var(--danger);">🚨 Réinitialiser l'année</button>
                 <p style="font-size: 0.7em; color: #666; margin-top: -5px;">(Supprime tous les congés et remet les compteurs à zéro)</p>
-                
             </div>
         </div>
 
@@ -255,7 +259,7 @@
     let calendar;
     let userData = { leaves: [], config: {} };
 
-    // --- FONCTION JOURS FERIES (Calcul complet) ---
+    // --- FONCTION JOURS FERIES ---
     function getHolidays(y) {
         const a=y%19, b=Math.floor(y/100), c=y%100, d=Math.floor(b/4), e=b%4, f=Math.floor((b+8)/25), g=Math.floor((b-f+1)/3), h=(19*a+b-d-g+15)%30, i=Math.floor(c/4), k=c%4, l=(32+2*e+2*i-h-k)%7, m=Math.floor((a+11*h+22*l)/451), n=Math.floor((h+l-7*m+114)/31), p=(h+l-7*m+114)%31;
         const paques = new Date(y, n-1, p+1);
@@ -270,85 +274,64 @@
         else { t.innerText="Connexion"; b.innerText="Se connecter"; l.innerText="Créer un compte"; }
     };
 
-document.getElementById('auth-btn').onclick = async () => {
-    const e = document.getElementById('email').value, p = document.getElementById('password').value;
-    try {
-        if(document.getElementById('auth-btn').innerText === "Se connecter") await signInWithEmailAndPassword(auth, e, p);
-        else await createUserWithEmailAndPassword(auth, e, p);
-    } catch(err) {
-        // --- REMPLACEMENT ICI ---
-        Swal.fire({
-            icon: 'error',
-            title: 'Oups...',
-            text: 'Erreur : ' + err.message,
-            confirmButtonColor: '#2c3e50'
-        });
-    }
-};
+    document.getElementById('auth-btn').onclick = async () => {
+        const e = document.getElementById('email').value, p = document.getElementById('password').value;
+        try {
+            if(document.getElementById('auth-btn').innerText === "Se connecter") await signInWithEmailAndPassword(auth, e, p);
+            else await createUserWithEmailAndPassword(auth, e, p);
+        } catch(err) {
+            Swal.fire({ icon: 'error', title: 'Oups...', text: 'Erreur : ' + err.message, confirmButtonColor: '#2c3e50' });
+        }
+    };
 
-onAuthStateChanged(auth, (user) => {
-    const authContainer = document.getElementById('auth-container');
-    const mainApp = document.getElementById('main-app');
+    onAuthStateChanged(auth, (user) => {
+        const authContainer = document.getElementById('auth-container');
+        const mainApp = document.getElementById('main-app');
 
-    if(user) {
-        // L'utilisateur est connecté
-        authContainer.style.display = 'none';
-        mainApp.style.display = 'block';
-        document.getElementById('user-display').innerText = user.email;
-        startApp(user.uid);
-    } else {
-        // L'utilisateur n'est PAS connecté
-        mainApp.style.display = 'none';
-        authContainer.style.display = 'flex';
-    }
-});
+        if(user) {
+            authContainer.style.display = 'none';
+            mainApp.style.display = 'block';
+            document.getElementById('user-display').innerText = user.email;
+            startApp(user.uid);
+        } else {
+            mainApp.style.display = 'none';
+            authContainer.style.display = 'flex';
+        }
+    });
 
     // --- LOGIQUE APPLICATION ---
     function startApp(uid) {
         if(!calendar) {
             calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
                 initialView:'dayGridMonth', locale:'fr', firstDay:1,
-                                buttonText: {
-                today:    "Jour",
-                month:    "Mois",
-                year:     "Année"
-            },
+                buttonText: { today: "Jour", month: "Mois", year: "Année" },
                 headerToolbar: { left:'prev,next today', center:'title', right:'dayGridMonth,dayGridYear' },
                 datesSet: (info) => {
                     const h = getHolidays(info.view.currentStart.getFullYear());
                     const src = calendar.getEventSourceById('feries'); if(src) src.remove();
                     calendar.addEventSource({ id:'feries', events: Object.keys(h).map(d=>({title:h[d], start:d, display:'background', backgroundColor:'#eeeeee'}))});
                 },
-eventClick: async (info) => {
-    if(info.event.display === 'background') return;
+                eventClick: async (info) => {
+                    if(info.event.display === 'background') return;
 
-    Swal.fire({
-        title: 'Supprimer ce jour ?',
-        text: `Voulez-vous retirer "${info.event.title}" du calendrier ?`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#e74c3c', // Rouge danger
-        cancelButtonColor: '#95a5a6',
-        confirmButtonText: 'Oui, supprimer',
-        cancelButtonText: 'Annuler'
-    }).then(async (result) => {
-        if (result.isConfirmed) {
-            // Logique de suppression
-            userData.leaves = userData.leaves.filter(l => !(l.start === info.event.startStr && l.title === info.event.title));
-            
-            // Mise à jour Firebase
-            await setDoc(doc(db, "users", auth.currentUser.uid), userData);
-            
-            // Petit message de confirmation (optionnel)
-            Swal.fire({
-                title: 'Supprimé !',
-                icon: 'success',
-                timer: 1000,
-                showConfirmButton: false
-            });
-        }
-    });
-}
+                    Swal.fire({
+                        title: 'Supprimer ce jour ?',
+                        text: `Voulez-vous retirer "${info.event.title}" du calendrier ?`,
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#e74c3c',
+                        cancelButtonColor: '#95a5a6',
+                        confirmButtonText: 'Oui, supprimer',
+                        cancelButtonText: 'Annuler'
+                    }).then(async (result) => {
+                        if (result.isConfirmed) {
+                            // Comparaison stricte sur start et title
+                            userData.leaves = userData.leaves.filter(l => !(l.start === info.event.startStr && l.title === info.event.title));
+                            await setDoc(doc(db, "users", auth.currentUser.uid), userData);
+                            Swal.fire({ title: 'Supprimé !', icon: 'success', timer: 1000, showConfirmButton: false });
+                        }
+                    });
+                }
             });
             calendar.render();
         }
@@ -370,14 +353,19 @@ eventClick: async (info) => {
         a.innerHTML = '';
         
         Object.keys(userData.config).forEach(t => {
+            // CALCUL DES QUOTAS (Modifié pour accepter Matin/Après-midi et l'ancien 0.5j)
             const used = userData.leaves
-    .filter(l => (l.title === t || l.title === t + " (0.5j)") && !l.isCustom)
-    .reduce((acc, l) => acc + (l.value || 1), 0);
+                .filter(l => {
+                    // Vérifie si le titre correspond exactement OU s'il commence par le type (ex: "CP (Matin)")
+                    return (l.title === t || l.title.startsWith(t + " (")) && !l.isCustom;
+                })
+                .reduce((acc, l) => acc + (l.value || 1), 0);
+                
             const rem = userData.config[t].quota - used;
             d.innerHTML += `<div class="quota-card" style="border-left-color:${userData.config[t].color}">
-            <strong>${t}</strong> 
-            <b>${Number(rem)} / ${userData.config[t].quota}j</b>
-        </div>`;
+                <strong>${t}</strong> 
+                <b>${Number(rem)} / ${userData.config[t].quota}j</b>
+            </div>`;
             s.innerHTML += `<option value="${t}">${t}</option>`;
             
             const row = document.createElement('div');
@@ -386,26 +374,25 @@ eventClick: async (info) => {
             const delBtn = document.createElement('button');
             delBtn.innerText = '🗑️';
             delBtn.style = 'background:none; border:none; cursor:pointer; color:red; font-size:1.2em;';
-delBtn.onclick = () => {
-    Swal.fire({
-        title: 'Êtes-vous sûr ?',
-        text: `Supprimer le type "${t}" et TOUS les congés associés ?`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#e74c3c', // Rouge danger
-        cancelButtonColor: '#95a5a6',
-        confirmButtonText: 'Oui, supprimer',
-        cancelButtonText: 'Annuler'
-    }).then(async (result) => {
-        if (result.isConfirmed) {
-            userData.leaves = userData.leaves.filter(l => l.title !== t);
-            delete userData.config[t];
-            await setDoc(doc(db, "users", auth.currentUser.uid), userData);
-            
-            Swal.fire('Supprimé !', 'Le type a été retiré.', 'success');
-        }
-    });
-};
+            delBtn.onclick = () => {
+                Swal.fire({
+                    title: 'Êtes-vous sûr ?',
+                    text: `Supprimer le type "${t}" et TOUS les congés associés ?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#e74c3c',
+                    cancelButtonColor: '#95a5a6',
+                    confirmButtonText: 'Oui, supprimer',
+                    cancelButtonText: 'Annuler'
+                }).then(async (result) => {
+                    if (result.isConfirmed) {
+                        userData.leaves = userData.leaves.filter(l => !l.title.startsWith(t));
+                        delete userData.config[t];
+                        await setDoc(doc(db, "users", auth.currentUser.uid), userData);
+                        Swal.fire('Supprimé !', 'Le type a été retiré.', 'success');
+                    }
+                });
+            };
             row.appendChild(delBtn);
             a.appendChild(row);
         });
@@ -436,119 +423,108 @@ delBtn.onclick = () => {
         }
     };
 
-    // FONCTION RESET ANNEE
-document.getElementById('reset-year-btn').onclick = async () => {
-    // Utilisation de SweetAlert2 pour confirmer l'action
-    const result = await Swal.fire({
-        title: 'Action irréversible !',
-        text: "Voulez-vous vraiment supprimer TOUS vos congés posés et réinitialiser vos compteurs ?",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#e74c3c', // Rouge danger
-        cancelButtonColor: '#95a5a6',
-        confirmButtonText: 'Oui, tout effacer',
-        cancelButtonText: 'Annuler'
+    document.getElementById('reset-year-btn').onclick = async () => {
+        const result = await Swal.fire({
+            title: 'Action irréversible !',
+            text: "Voulez-vous vraiment supprimer TOUS vos congés posés et réinitialiser vos compteurs ?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e74c3c',
+            cancelButtonColor: '#95a5a6',
+            confirmButtonText: 'Oui, tout effacer',
+            cancelButtonText: 'Annuler'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                userData.leaves = [];
+                await setDoc(doc(db, "users", auth.currentUser.uid), userData);
+                Swal.fire('Réinitialisé !', 'Votre calendrier est à nouveau vide pour la nouvelle année.', 'success');
+            } catch (err) {
+                Swal.fire('Erreur', "La réinitialisation a échoué : " + err.message, 'error');
+            }
+        }
+    };
+
+    // GESTION DE L'AFFICHAGE DATE FIN VIA BOUTONS RADIO
+    document.querySelectorAll('input[name="duration"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            const endDateInput = document.getElementById('end-date');
+            const endDateLabel = document.getElementById('end-date-label');
+            
+            if (e.target.value === 'full') {
+                endDateInput.style.display = 'block';
+                if(endDateLabel) endDateLabel.style.display = 'block';
+            } else {
+                endDateInput.style.display = 'none';
+                if(endDateLabel) endDateLabel.style.display = 'none';
+                endDateInput.value = ""; 
+            }
+        });
     });
 
-    if (result.isConfirmed) {
-        try {
-            // 1. On vide la liste des congés
-            userData.leaves = [];
-            
-            // 2. On met à jour la base de données Firebase
-            await setDoc(doc(db, "users", auth.currentUser.uid), userData);
-            
-            // 3. Message de succès
-            Swal.fire(
-                'Réinitialisé !',
-                'Votre calendrier est à nouveau vide pour la nouvelle année.',
-                'success'
-            );
-        } catch (err) {
-            Swal.fire('Erreur', "La réinitialisation a échoué : " + err.message, 'error');
+    // FONCTION PRINCIPALE : AJOUTER UN CONGÉ
+    document.getElementById('add-leave-btn').onclick = async () => {
+        const start = document.getElementById('start-date').value;
+        const end = document.getElementById('end-date').value;
+        const type = document.getElementById('leave-type-select').value;
+        
+        // Récupérer la valeur du bouton radio coché (full, am, ou pm)
+        const durationMode = document.querySelector('input[name="duration"]:checked').value;
+
+        if (!start || !type) {
+            return Swal.fire({ icon: 'warning', title: 'Attention', text: 'Veuillez remplir les dates et le type.', confirmButtonColor: '#2c3e50' });
         }
-    }
-};
 
-    // Masquer la date de fin si c'est une demi-journée
-document.getElementById('half-day-check').onchange = (e) => {
-    const endDateInput = document.getElementById('end-date');
-    // On cherche le label "Au :" qui est juste avant l'input
-    const endDateLabel = endDateInput.previousElementSibling; 
-    
-    if(e.target.checked) {
-        endDateInput.style.display = 'none';
-        if(endDateLabel) endDateLabel.style.display = 'none';
-        endDateInput.value = ""; // Sécurité : on vide la fin
-    } else {
-        endDateInput.style.display = 'block';
-        if(endDateLabel) endDateLabel.style.display = 'block';
-    }
-};
+        const isC = (type === 'INFO_LIBRE');
+        const baseTitle = isC ? document.getElementById('custom-info-text').value : type;
 
-document.getElementById('add-leave-btn').onclick = async () => {
-    const start = document.getElementById('start-date').value;
-    const end = document.getElementById('end-date').value;
-    const type = document.getElementById('leave-type-select').value;
-    const isHalfDay = document.getElementById('half-day-check').checked; // Récupère l'état de la checkbox
+        if (durationMode !== 'full') {
+            // --- CAS DEMI-JOURNÉE (Matin ou Après-midi) ---
+            const suffix = (durationMode === 'am') ? ' (Matin)' : ' (Apr-Midi)';
+            
+            userData.leaves.push({
+                title: baseTitle + suffix,
+                start: start,
+                backgroundColor: isC ? '#bdc3c7' : userData.config[type].color,
+                borderColor: '#ddd',
+                isCustom: isC,
+                value: 0.5 
+            });
+        } else {
+            // --- CAS JOURS ENTIERS ---
+            let cur = new Date(start);
+            let last = new Date(end || start);
 
-    if (!start || !type) {
-        return Swal.fire({
-            icon: 'warning',
-            title: 'Attention',
-            text: 'Veuillez remplir les dates et le type.',
-            confirmButtonColor: '#2c3e50'
-        });
-    }
-
-    const isC = (type === 'INFO_LIBRE');
-    const baseTitle = isC ? document.getElementById('custom-info-text').value : type;
-
-    if (isHalfDay) {
-        // --- CAS DEMI-JOURNÉE (0.5j) ---
-        // On ignore la date de fin, on ne prend que la date de début
-        userData.leaves.push({
-            title: baseTitle + " (0.5j)",
-            start: start,
-            backgroundColor: isC ? '#bdc3c7' : userData.config[type].color,
-            borderColor: '#ddd',
-            isCustom: isC,
-            value: 0.5 // On stocke 0.5 pour le calcul du compteur
-        });
-    } else {
-        // --- CAS JOURS ENTIERS (Boucle classique) ---
-        let cur = new Date(start);
-        let last = new Date(end || start);
-
-        while (cur <= last) {
-            if (cur.getDay() !== 0 && cur.getDay() !== 6) { // Hors week-end
-                userData.leaves.push({
-                    title: baseTitle,
-                    start: cur.toISOString().split('T')[0],
-                    backgroundColor: isC ? '#bdc3c7' : userData.config[type].color,
-                    borderColor: '#ddd',
-                    isCustom: isC,
-                    value: 1 // On stocke 1 pour le calcul du compteur
-                });
+            while (cur <= last) {
+                if (cur.getDay() !== 0 && cur.getDay() !== 6) { // Hors week-end
+                    userData.leaves.push({
+                        title: baseTitle,
+                        start: cur.toISOString().split('T')[0],
+                        backgroundColor: isC ? '#bdc3c7' : userData.config[type].color,
+                        borderColor: '#ddd',
+                        isCustom: isC,
+                        value: 1
+                    });
+                }
+                cur.setDate(cur.getDate() + 1);
             }
-            cur.setDate(cur.getDate() + 1);
         }
-    }
 
-    // Sauvegarde Firebase
-    await setDoc(doc(db, "users", auth.currentUser.uid), userData);
+        // Sauvegarde Firebase
+        await setDoc(doc(db, "users", auth.currentUser.uid), userData);
 
-    // Reset du formulaire
-    document.getElementById('start-date').value = '';
-    document.getElementById('end-date').value = '';
-    document.getElementById('custom-info-text').value = '';
-    document.getElementById('half-day-check').checked = false;
-    
-    // Optionnel : réafficher le champ "Au" s'il était masqué
-    document.getElementById('end-date').style.display = 'block';
-};
+        // Reset du formulaire
+        document.getElementById('start-date').value = '';
+        document.getElementById('end-date').value = '';
+        document.getElementById('custom-info-text').value = '';
+        // Reset radio à "Journée"
+        const fullRadio = document.querySelector('input[name="duration"][value="full"]');
+        fullRadio.checked = true;
+        // Déclencher l'event change pour réafficher la date de fin
+        fullRadio.dispatchEvent(new Event('change'));
+    };
 
-    // --- GESTION DE LA DECONNEXION ---
     document.getElementById('logout-btn').onclick = async () => {
         try {
             await signOut(auth);
@@ -557,46 +533,34 @@ document.getElementById('add-leave-btn').onclick = async () => {
             alert("Erreur lors de la déconnexion : " + err.message);
         }
     };
-    // --- MODAL D'AIDE DETAILLÉ ---
-document.getElementById('help-btn').onclick = () => {
-    Swal.fire({
-        title: '<strong>📖 Guide de l\'utilisateur</strong>',
-        icon: 'info',
-        width: '600px',
-        html: `
-            <div style="text-align: left; font-size: 0.85em; line-height: 1.6; max-height: 400px; overflow-y: auto;">
-                <h4 style="color:var(--primary); border-bottom: 1px solid #eee; padding-bottom: 5px;">📊 Gestion des Compteurs</h4>
-                <p>Puisque votre compte est neuf, commencez par créer vos types de congés dans la section <strong>⚙️ Configuration</strong> (en bas de la barre latérale) :</p>
-                <ul>
-                    <li><strong>Nom :</strong> Ex: "C", "RU", "RP".</li>
-                    <li><strong>Quota :</strong> Nombre de jours alloués pour l'année.</li>
-                    <li><strong>Couleur :</strong> Personnalisez l'affichage sur le calendrier.</li>
-                    <li><strong>Supprimer :</strong> L'icône 🗑️ retire le type et tous ses jours posés.</li>
-                </ul>
 
-                <h4 style="color:var(--primary); border-bottom: 1px solid #eee; padding-bottom: 5px;">📅 Poser des Jours</h4>
-                <ul>
-                    <li><strong>Sélection :</strong> Choisissez une date de début et de fin.</li>
-                    <li><strong>Automatisme :</strong> Le système <strong>ignore automatiquement</strong> les week-ends (Samedi/Dimanche).</li>
-                    <li><strong>Info Libre :</strong> Pour noter un événement (ex: "Télétravail") sans impacter vos quotas de congés.</li>
-                </ul>
+    document.getElementById('help-btn').onclick = () => {
+        Swal.fire({
+            title: '<strong>📖 Guide de l\'utilisateur</strong>',
+            icon: 'info',
+            width: '600px',
+            html: `
+                <div style="text-align: left; font-size: 0.85em; line-height: 1.6; max-height: 400px; overflow-y: auto;">
+                    <h4 style="color:var(--primary); border-bottom: 1px solid #eee; padding-bottom: 5px;">📊 Gestion des Compteurs</h4>
+                    <p>Commencez par créer vos types de congés dans la section <strong>⚙️ Configuration</strong> (ex: CP, RTT).</p>
 
-                <h4 style="color:var(--primary); border-bottom: 1px solid #eee; padding-bottom: 5px;">🖱️ Interactions</h4>
-                <ul>
-                    <li><strong>Suppression :</strong> Cliquez simplement sur un congé dans le calendrier pour l'effacer.</li>
-                    <li><strong>Vues :</strong> Basculez entre l'affichage "Mois" et "Année" avec les boutons en haut à droite.</li>
-                </ul>
+                    <h4 style="color:var(--primary); border-bottom: 1px solid #eee; padding-bottom: 5px;">📅 Poser des Jours</h4>
+                    <ul>
+                        <li><strong>Durée :</strong> Sélectionnez "Journée", "Matin" ou "Après-midi".</li>
+                        <li><strong>Matin/Apr-Midi :</strong> Décompte 0.5 jour.</li>
+                        <li><strong>Journée :</strong> Décompte 1 jour (ignore les week-ends automatiquement).</li>
+                    </ul>
 
-                <h4 style="color:var(--danger); border-bottom: 1px solid #eee; padding-bottom: 5px;">🚨 Maintenance</h4>
-                <ul>
-                    <li><strong>Réinitialiser l'année :</strong> Efface TOUS vos congés et remet vos compteurs à leur valeur initiale (utile au 1er janvier).</li>
-                </ul>
-            </div>
-        `,
-        confirmButtonText: 'J\'ai compris',
-        confirmButtonColor: '#2c3e50'
-    });
-};
+                    <h4 style="color:var(--primary); border-bottom: 1px solid #eee; padding-bottom: 5px;">🖱️ Interactions</h4>
+                    <ul>
+                        <li>Cliquez sur un événement dans le calendrier pour le supprimer.</li>
+                    </ul>
+                </div>
+            `,
+            confirmButtonText: 'J\'ai compris',
+            confirmButtonColor: '#2c3e50'
+        });
+    };
 </script>
 </body>
 </html>
