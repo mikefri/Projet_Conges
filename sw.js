@@ -1,9 +1,8 @@
 const CACHE_VERSION = '1.3.0';
-const CACHE_NAME = 'planning-v' + CACHE_VERSION; // Utilise la version ici
+const CACHE_NAME = 'planning-v' + CACHE_VERSION; 
 
 self.addEventListener('message', (event) => {
   if (event.data === 'getVersion') {
-    // On répond directement à la page qui a posé la question
     if (event.ports && event.ports[0]) {
       event.ports[0].postMessage(CACHE_VERSION);
     }
@@ -38,7 +37,6 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
-  // Permet au SW de prendre le contrôle des pages ouvertes immédiatement
   self.clients.claim();
 });
 
