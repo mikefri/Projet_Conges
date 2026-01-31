@@ -17,7 +17,6 @@
 
     <script>
 if ('serviceWorker' in navigator) {
-    // Fonction robuste pour demander la version
     const askVersion = (worker) => {
       if (!worker) return;
       const messageChannel = new MessageChannel();
@@ -30,11 +29,7 @@ if ('serviceWorker' in navigator) {
 
     navigator.serviceWorker.register('sw.js').then(reg => {
       console.log("Service Worker Planning Enregistré");
-
-      // Cas 1 : Le SW est déjà actif et contrôle la page
       if (reg.active) askVersion(reg.active);
-
-      // Cas 2 : Un nouveau SW est en train de s'installer
       reg.addEventListener('updatefound', () => {
         const newWorker = reg.installing;
         newWorker.addEventListener('statechange', () => {
@@ -43,7 +38,6 @@ if ('serviceWorker' in navigator) {
       });
     }).catch(err => console.log("Erreur SW:", err));
 
-    // Cas 3 : Sécurité quand le contrôle change (indispensable avec clients.claim)
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       askVersion(navigator.serviceWorker.controller);
     });
@@ -55,8 +49,22 @@ if ('serviceWorker' in navigator) {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
-        :root { --primary: #2c3e50; --bg: #f4f7f6; --danger: #e74c3c; --success: #27ae60; --info: #3498db; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: #333; }
+        :root { 
+            --primary: #2c3e50; 
+            --bg: #f4f7f6; 
+            --danger: #e74c3c; 
+            --success: #27ae60; 
+            --info: #3498db; 
+            --warning: #f39c12;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: var(--bg); 
+            color: #333; 
+        }
 
         /* ZONE AUTHENTIFICATION */
         #auth-container {
@@ -65,7 +73,7 @@ if ('serviceWorker' in navigator) {
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background: #2c3e50;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
             position: fixed;
             width: 100%;
             top: 0;
@@ -103,7 +111,20 @@ if ('serviceWorker' in navigator) {
             border: 4px solid white;
         }
 
-        .auth-box input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        .auth-box input { 
+            width: 100%; 
+            padding: 12px; 
+            margin: 10px 0; 
+            border: 1px solid #ddd; 
+            border-radius: 6px; 
+            font-size: 0.95em;
+        }
+        
+        .auth-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
+        }
 
         /* LAYOUT PRINCIPAL */
         #main-app { display: none; }
@@ -113,36 +134,164 @@ if ('serviceWorker' in navigator) {
             background: #e9ecef;        
             justify-content: space-between;
             align-items: center; 
-            padding: 0 10px;
+            padding: 0 15px;
             height: 60px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .header-left { display: flex; align-items: center; gap: 15px; }
+        
+        .header-left { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
         
         .app-container { display: flex; height: calc(100vh - 60px); }
         
         /* SIDEBAR */
-        #sidebar { width: 350px; background: #e9ecef; border-right: 1px solid #ddd; padding: 20px; overflow-y: auto; box-sizing: border-box; }
-        .quota-card { background: #fff; border: 1px solid #eee; padding: 12px; margin-bottom: 10px; border-radius: 6px; border-left: 7px solid #ccc; display: flex; justify-content: space-between; align-items: center; }
+        #sidebar { 
+            width: 370px; 
+            background: #e9ecef; 
+            border-right: 1px solid #ddd; 
+            padding: 20px; 
+            overflow-y: auto; 
+        }
+        
+        .quota-card { 
+            background: #fff; 
+            border: 1px solid #eee; 
+            padding: 12px; 
+            margin-bottom: 10px; 
+            border-radius: 6px; 
+            border-left: 5px solid #ccc; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .quota-card:hover {
+            transform: translateX(3px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .quota-warning {
+            background: #fff3cd;
+            border-left-color: var(--warning);
+        }
+        
+        .quota-danger {
+            background: #f8d7da;
+            border-left-color: var(--danger);
+        }
         
         /* FORMULAIRES */
-        input[type="date"], select, input[type="text"], input[type="number"] { width: 100%; padding: 10px; margin: 5px 0 15px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        input[type="date"], select, input[type="text"], input[type="number"] { 
+            width: 100%; 
+            padding: 10px; 
+            margin: 5px 0 15px 0; 
+            border: 1px solid #ddd; 
+            border-radius: 6px; 
+            font-size: 0.95em;
+        }
         
-        .btn-action { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-bottom: 10px; }
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
+        }
         
-        .btn-nav { background: var(--info); color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; text-decoration: none; font-size: 0.85em; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-action { 
+            width: 100%; 
+            padding: 12px; 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            margin-bottom: 10px;
+            transition: background 0.3s, transform 0.1s;
+        }
+        
+        .btn-action:hover {
+            background: #1a252f;
+            transform: translateY(-1px);
+        }
+        
+        .btn-action:active {
+            transform: translateY(0);
+        }
+        
+        .btn-nav { 
+            background: var(--info); 
+            color: white; 
+            border: none; 
+            padding: 8px 15px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            text-decoration: none; 
+            font-size: 0.85em; 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 5px;
+            transition: background 0.3s;
+        }
+        
         .btn-nav:hover { background: #2980b9; }
 
         /* CONFIGURATION / SETTINGS */
-        #settings-content { background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px dashed #ccc; margin-top: 10px; }
-        .type-item-row { display: flex; justify-content: space-between; align-items: center; background: white; padding: 8px; margin-bottom: 5px; border-radius: 4px; border: 1px solid #eee; font-size: 0.9em; }
+        #settings-content { 
+            background: #f9f9f9; 
+            padding: 15px; 
+            border-radius: 8px; 
+            border: 1px dashed #ccc; 
+            margin-top: 10px; 
+        }
         
-        #calendar-container { flex-grow: 1; padding: 20px; background: white; overflow-y: auto; }
-        .btn-toggle { font-size: 0.75em; background: #95a5a6; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; float: right; }
+        .type-item-row { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            background: white; 
+            padding: 8px 12px; 
+            margin-bottom: 5px; 
+            border-radius: 4px; 
+            border: 1px solid #eee; 
+            font-size: 0.9em; 
+        }
+        
+        #calendar-container { 
+            flex-grow: 1; 
+            padding: 20px; 
+            background: white; 
+            overflow-y: auto; 
+        }
+        
+        .btn-toggle { 
+            font-size: 0.75em; 
+            background: #95a5a6; 
+            color: white; 
+            padding: 4px 8px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            float: right;
+            transition: background 0.3s;
+        }
+        
+        .btn-toggle:hover {
+            background: #7f8c8d;
+        }
         
         /* Force le texte en noir pour tous les événements du calendrier */
         .fc-event-title, .fc-event-main { color: #000000 !important; }
         
-        #help-btn:hover { background: var(--info) !important; color: white !important; }
+        /* Styles pour demi-journées */
+        .fc-event.half-day {
+            opacity: 0.8;
+            font-style: italic;
+        }
+        
+        #help-btn:hover { 
+            background: var(--info) !important; 
+            color: white !important; 
+        }
 
         /* Styles spécifiques pour les boutons radio de durée */
         .duration-group {
@@ -152,22 +301,87 @@ if ('serviceWorker' in navigator) {
             border-radius: 6px;
             border: 1px solid #ddd;
         }
+        
         .duration-options {
             display: flex;
             gap: 15px;
             margin-top: 5px;
         }
+        
         .radio-label {
             display: flex;
             align-items: center;
             cursor: pointer;
             font-size: 0.9em;
         }
+        
         .radio-label input {
             width: auto;
             margin-right: 5px;
             margin-top: 0;
             margin-bottom: 0;
+            cursor: pointer;
+        }
+        
+        /* Légende du calendrier */
+        .calendar-legend {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .legend-item {
+            display: inline-flex;
+            align-items: center;
+            margin-right: 15px;
+            margin-bottom: 5px;
+            font-size: 0.85em;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            margin-right: 5px;
+            border: 1px solid #ddd;
+        }
+        
+        /* Animation de succès */
+        @keyframes successPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .success-animation {
+            animation: successPulse 0.3s ease-in-out;
+        }
+        
+        /* Loader */
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-left: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .app-container { flex-direction: column; }
+            #sidebar { width: 100%; border-right: none; border-bottom: 1px solid #ddd; max-height: 50vh; }
+            .header-left { font-size: 0.9em; }
+            .app-main-title { font-size: 2em; }
         }
     </style>
 </head>
@@ -177,20 +391,18 @@ if ('serviceWorker' in navigator) {
     <h1 class="app-main-title">🌴 Mon Planning Congés</h1>
     
     <div class="auth-box">
-        <img src="icon.png" alt="Logo" class="auth-logo" onerror="this.src='https://via.placeholder.com/80?text=Icon'">
+        <img src="icon.png" alt="Logo" class="auth-logo" onerror="this.src='https://via.placeholder.com/80?text=📅'">
         <h2 id="auth-title">Connexion</h2>
-        <input type="email" id="email" placeholder="Email">
-        <input type="password" id="password" placeholder="Mot de passe">
+        <input type="email" id="email" placeholder="Email" autocomplete="email">
+        <input type="password" id="password" placeholder="Mot de passe" autocomplete="current-password">
         <button id="auth-btn" class="btn-action" style="background: var(--success);">Se connecter</button>
         <span id="toggle-auth" style="color:#3498db; cursor:pointer; font-size:0.8em; text-decoration:underline;">Créer un compte</span>
     </div>
 
     <div style="margin-top: 25px; color: rgba(255,255,255,0.7); font-size: 0.8em; text-align: center; max-width: 320px;">
         <div style="font-weight: bold; margin-bottom: 10px; color: white;">
-    Version <span id="app-version">1.3.0</span>
-</div>
-        
-
+            Version <span id="app-version">2.0.0</span>
+        </div>
     </div>
 </div>
 
@@ -198,8 +410,8 @@ if ('serviceWorker' in navigator) {
     <div class="header">
         <div class="header-left">
             <span>👤 <strong id="user-display"></strong></span>
-            <button id="logout-btn" style="background:var(--danger); color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer; margin-left:10px;">Déconnexion</button>
-            <button id="help-btn" title="Aide" style="background:none; color:var(--info); border:2px solid var(--info); width:30px; height:30px; border-radius:50%; cursor:pointer; margin-left:10px; font-weight:bold; display:flex; align-items:center; justify-content:center; padding:0;">?</button>
+            <button id="logout-btn" style="background:var(--danger); color:white; border:none; padding:8px 15px; border-radius:6px; cursor:pointer;">Déconnexion</button>
+            <button id="help-btn" title="Aide" style="background:none; color:var(--info); border:2px solid var(--info); width:30px; height:30px; border-radius:50%; cursor:pointer; font-weight:bold; display:flex; align-items:center; justify-content:center; padding:0;">?</button>
         </div>
         <a href="planning.html" class="btn-nav">📅 Planning Global</a>
     </div>
@@ -209,13 +421,17 @@ if ('serviceWorker' in navigator) {
             <h3>📊 Compteurs de Jours</h3>
             <div id="quotas-display"></div>
             
-            <hr>
-            <h3>📅 Poser un congé</h3>
-            <label>Du :</label> <input type="date" id="start-date">
-            <label id="end-date-label">Au :</label> <input type="date" id="end-date">
+            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ccc;">
             
-            <label>Type :</label>
-            <select id="leave-type-select">
+            <h3>📅 Poser un congé</h3>
+            <label style="font-weight: 500;">Du :</label> 
+            <input type="date" id="start-date" required>
+            
+            <label id="end-date-label" style="font-weight: 500;">Au :</label> 
+            <input type="date" id="end-date">
+            
+            <label style="font-weight: 500;">Type :</label>
+            <select id="leave-type-select" required>
                 <option value="">-- Choisir --</option>
                 <option value="INFO_LIBRE">💡 Information libre</option>
             </select>
@@ -236,17 +452,17 @@ if ('serviceWorker' in navigator) {
             </div>
 
             <div id="custom-info-group" style="display:none;">
-                <input type="text" id="custom-info-text" placeholder="Titre (ex: Formation)">
+                <input type="text" id="custom-info-text" placeholder="Titre (ex: Formation, Rendez-vous...)">
             </div>
             
-            <button class="btn-action" id="add-leave-btn">Enregistrer les jours</button>
+            <button class="btn-action" id="add-leave-btn">✅ Enregistrer les jours</button>
 
             <h3 style="margin-top:20px;">⚙️ Configuration <span class="btn-toggle" id="toggle-settings-btn">Afficher</span></h3>
             <div id="settings-content" style="display:none;">
                 <div id="types-list-admin"></div>
                 <h4 style="margin: 15px 0 5px 0;">Ajouter un type :</h4>
-                <input type="text" id="new-type-name" placeholder="Nom (ex: RTT)">
-                <input type="number" id="new-type-quota" placeholder="Nombre de jours">
+                <input type="text" id="new-type-name" placeholder="Nom (ex: RTT, Formation)">
+                <input type="number" id="new-type-quota" placeholder="Nombre de jours" min="0" step="0.5">
                 <input type="color" id="new-type-color" value="#3498db" style="height:40px; cursor:pointer;">
                 <button class="btn-action" id="save-type-btn" style="background:var(--success);">+ Créer ce type</button>
 
@@ -257,6 +473,10 @@ if ('serviceWorker' in navigator) {
         </div>
 
         <div id="calendar-container">
+            <div class="calendar-legend">
+                <strong>📌 Légende :</strong>
+                <div style="margin-top: 8px;" id="legend-items"></div>
+            </div>
             <div id="calendar"></div>
         </div>
     </div>
@@ -281,29 +501,105 @@ if ('serviceWorker' in navigator) {
     const db = getFirestore(app);
     let calendar;
     let userData = { leaves: [], config: {} };
+    let currentHolidays = {};
 
     // --- FONCTION JOURS FERIES ---
     function getHolidays(y) {
         const a=y%19, b=Math.floor(y/100), c=y%100, d=Math.floor(b/4), e=b%4, f=Math.floor((b+8)/25), g=Math.floor((b-f+1)/3), h=(19*a+b-d-g+15)%30, i=Math.floor(c/4), k=c%4, l=(32+2*e+2*i-h-k)%7, m=Math.floor((a+11*h+22*l)/451), n=Math.floor((h+l-7*m+114)/31), p=(h+l-7*m+114)%31;
         const paques = new Date(y, n-1, p+1);
         const add = (d, n) => { let r=new Date(d); r.setDate(r.getDate()+n); return r.toISOString().split('T')[0]; };
-        return { [`${y}-01-01`]:"An", [add(paques,0)]:"Pâques", [add(paques,1)]:"L.Pâques", [`${y}-05-01`]:"Travail", [`${y}-05-08`]:"Victoire", [add(paques,39)]:"Ascension", [add(paques,50)]:"L.Pentec.", [`${y}-07-14`]:"Nat.", [`${y}-08-15`]:"Assompt.", [`${y}-11-01`]:"Toussaint", [`${y}-11-11`]:"Armistice", [`${y}-12-25`]:"Noël" };
+        return { 
+            [`${y}-01-01`]:"Nouvel An", 
+            [add(paques,0)]:"Pâques", 
+            [add(paques,1)]:"Lundi de Pâques", 
+            [`${y}-05-01`]:"Fête du Travail", 
+            [`${y}-05-08`]:"Victoire 1945", 
+            [add(paques,39)]:"Ascension", 
+            [add(paques,50)]:"Lundi de Pentecôte", 
+            [`${y}-07-14`]:"Fête Nationale", 
+            [`${y}-08-15`]:"Assomption", 
+            [`${y}-11-01`]:"Toussaint", 
+            [`${y}-11-11`]:"Armistice 1918", 
+            [`${y}-12-25`]:"Noël" 
+        };
+    }
+    
+    // Vérifier si une date est un jour férié
+    function isHoliday(dateStr, year) {
+        const holidays = getHolidays(year);
+        return holidays[dateStr] !== undefined;
+    }
+    
+    // Calculer le nombre de jours ouvrés (sans week-ends ni fériés)
+    function calculateWorkDays(startStr, endStr) {
+        let count = 0;
+        let cur = new Date(startStr);
+        const last = new Date(endStr);
+        
+        while (cur <= last) {
+            const curStr = cur.toISOString().split('T')[0];
+            const day = cur.getDay();
+            const year = cur.getFullYear();
+            
+            // Compter seulement si ce n'est ni un week-end ni un jour férié
+            if (day !== 0 && day !== 6 && !isHoliday(curStr, year)) {
+                count++;
+            }
+            cur.setDate(cur.getDate() + 1);
+        }
+        return count;
     }
 
     // --- GESTION AUTHENTIFICATION ---
     document.getElementById('toggle-auth').onclick = () => {
-        const t = document.getElementById('auth-title'), b = document.getElementById('auth-btn'), l = document.getElementById('toggle-auth');
-        if(b.innerText === "Se connecter") { t.innerText="Inscription"; b.innerText="Créer mon compte"; l.innerText="Connexion"; }
-        else { t.innerText="Connexion"; b.innerText="Se connecter"; l.innerText="Créer un compte"; }
+        const t = document.getElementById('auth-title');
+        const b = document.getElementById('auth-btn');
+        const l = document.getElementById('toggle-auth');
+        
+        if(b.innerText === "Se connecter") { 
+            t.innerText="Inscription"; 
+            b.innerText="Créer mon compte"; 
+            l.innerText="J'ai déjà un compte"; 
+        } else { 
+            t.innerText="Connexion"; 
+            b.innerText="Se connecter"; 
+            l.innerText="Créer un compte"; 
+        }
     };
 
     document.getElementById('auth-btn').onclick = async () => {
-        const e = document.getElementById('email').value, p = document.getElementById('password').value;
+        const e = document.getElementById('email').value.trim();
+        const p = document.getElementById('password').value;
+        
+        if (!e || !p) {
+            return Swal.fire({ 
+                icon: 'warning', 
+                title: 'Attention', 
+                text: 'Veuillez remplir tous les champs.', 
+                confirmButtonColor: '#2c3e50' 
+            });
+        }
+        
         try {
-            if(document.getElementById('auth-btn').innerText === "Se connecter") await signInWithEmailAndPassword(auth, e, p);
-            else await createUserWithEmailAndPassword(auth, e, p);
+            if(document.getElementById('auth-btn').innerText === "Se connecter") {
+                await signInWithEmailAndPassword(auth, e, p);
+            } else {
+                await createUserWithEmailAndPassword(auth, e, p);
+            }
         } catch(err) {
-            Swal.fire({ icon: 'error', title: 'Oups...', text: 'Erreur : ' + err.message, confirmButtonColor: '#2c3e50' });
+            let errorMsg = 'Une erreur est survenue.';
+            if (err.code === 'auth/invalid-email') errorMsg = 'Email invalide.';
+            else if (err.code === 'auth/user-not-found') errorMsg = 'Utilisateur introuvable.';
+            else if (err.code === 'auth/wrong-password') errorMsg = 'Mot de passe incorrect.';
+            else if (err.code === 'auth/email-already-in-use') errorMsg = 'Cet email est déjà utilisé.';
+            else if (err.code === 'auth/weak-password') errorMsg = 'Le mot de passe doit contenir au moins 6 caractères.';
+            
+            Swal.fire({ 
+                icon: 'error', 
+                title: 'Erreur de connexion', 
+                text: errorMsg, 
+                confirmButtonColor: '#2c3e50' 
+            });
         }
     };
 
@@ -326,34 +622,67 @@ if ('serviceWorker' in navigator) {
     function startApp(uid) {
         if(!calendar) {
             calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
-                initialView:'dayGridMonth', locale:'fr', firstDay:1,
-                buttonText: { today: "Jour", month: "Mois", year: "Année" },
-                headerToolbar: { left:'prev,next today', center:'title', right:'dayGridMonth,dayGridYear' },
+                initialView:'dayGridMonth', 
+                locale:'fr', 
+                firstDay:1,
+                buttonText: { today: "Aujourd'hui", month: "Mois", year: "Année" },
+                headerToolbar: { 
+                    left:'prev,next today', 
+                    center:'title', 
+                    right:'dayGridMonth,dayGridYear' 
+                },
                 datesSet: (info) => {
-                    const h = getHolidays(info.view.currentStart.getFullYear());
-                    const src = calendar.getEventSourceById('feries'); if(src) src.remove();
-                    calendar.addEventSource({ id:'feries', events: Object.keys(h).map(d=>({title:h[d], start:d, display:'background', backgroundColor:'#eeeeee'}))});
+                    const year = info.view.currentStart.getFullYear();
+                    currentHolidays = getHolidays(year);
+                    const src = calendar.getEventSourceById('feries'); 
+                    if(src) src.remove();
+                    calendar.addEventSource({ 
+                        id:'feries', 
+                        events: Object.keys(currentHolidays).map(d=>({
+                            title: currentHolidays[d], 
+                            start: d, 
+                            display: 'background', 
+                            backgroundColor: '#eeeeee'
+                        }))
+                    });
                 },
                 eventClick: async (info) => {
                     if(info.event.display === 'background') return;
 
-                    Swal.fire({
+                    const result = await Swal.fire({
                         title: 'Supprimer ce jour ?',
-                        text: `Voulez-vous retirer "${info.event.title}" du calendrier ?`,
+                        html: `Voulez-vous retirer :<br><strong>"${info.event.title}"</strong><br>du ${info.event.startStr} ?`,
                         icon: 'question',
                         showCancelButton: true,
                         confirmButtonColor: '#e74c3c',
                         cancelButtonColor: '#95a5a6',
                         confirmButtonText: 'Oui, supprimer',
                         cancelButtonText: 'Annuler'
-                    }).then(async (result) => {
-                        if (result.isConfirmed) {
-                            // Comparaison stricte sur start et title
-                            userData.leaves = userData.leaves.filter(l => !(l.start === info.event.startStr && l.title === info.event.title));
-                            await setDoc(doc(db, "users", auth.currentUser.uid), userData);
-                            Swal.fire({ title: 'Supprimé !', icon: 'success', timer: 1000, showConfirmButton: false });
-                        }
                     });
+
+                    if (result.isConfirmed) {
+                        try {
+                            // Utiliser l'ID unique pour supprimer
+                            const eventId = info.event.id;
+                            userData.leaves = userData.leaves.filter(l => l.id !== eventId);
+                            await saveUserData();
+                            
+                            Swal.fire({ 
+                                title: 'Supprimé !', 
+                                icon: 'success', 
+                                timer: 1500, 
+                                showConfirmButton: false 
+                            });
+                        } catch (error) {
+                            console.error("Erreur suppression:", error);
+                            Swal.fire({ 
+                                icon: 'error', 
+                                title: 'Erreur', 
+                                text: 'Impossible de supprimer cet événement.', 
+                                confirmButtonColor: '#e74c3c' 
+                            });
+                        }
+                    }
                 }
             });
             calendar.render();
@@ -364,92 +693,185 @@ if ('serviceWorker' in navigator) {
                 userData = snap.data();
                 refreshAll();
             } else {
-                setDoc(doc(db, "users", uid), userData);
+                setDoc(doc(db, "users", uid), userData).catch(err => {
+                    console.error("Erreur initialisation:", err);
+                });
             }
         });
     }
+    
+    // Fonction centralisée pour sauvegarder les données
+    async function saveUserData() {
+        try {
+            await setDoc(doc(db, "users", auth.currentUser.uid), userData);
+            return true;
+        } catch (error) {
+            console.error("Erreur Firestore:", error);
+            Swal.fire({ 
+                icon: 'error', 
+                title: 'Erreur de synchronisation', 
+                text: 'Vérifiez votre connexion Internet.', 
+                confirmButtonColor: '#e74c3c' 
+            });
+            return false;
+        }
+    }
 
     function refreshAll() {
-        const d = document.getElementById('quotas-display'), s = document.getElementById('leave-type-select'), a = document.getElementById('types-list-admin');
+        const d = document.getElementById('quotas-display');
+        const s = document.getElementById('leave-type-select');
+        const a = document.getElementById('types-list-admin');
+        const legend = document.getElementById('legend-items');
+        
         d.innerHTML = ''; 
         s.innerHTML = '<option value="">-- Choisir --</option><option value="INFO_LIBRE">💡 Information libre</option>'; 
         a.innerHTML = '';
+        legend.innerHTML = '<div class="legend-item"><div class="legend-color" style="background:#eeeeee;"></div>Jours fériés</div>';
         
         Object.keys(userData.config).forEach(t => {
-            // CALCUL DES QUOTAS (Modifié pour accepter Matin/Après-midi et l'ancien 0.5j)
+            const typeConfig = userData.config[t];
+            
+            // CALCUL DES QUOTAS (avec support demi-journées)
             const used = userData.leaves
                 .filter(l => {
-                    // Vérifie si le titre correspond exactement OU s'il commence par le type (ex: "CP (Matin)")
                     return (l.title === t || l.title.startsWith(t + " (")) && !l.isCustom;
                 })
-                .reduce((acc, l) => acc + (l.value || 1), 0);
+                .reduce((acc, l) => acc + (l.value ?? 1), 0);
                 
-            const rem = userData.config[t].quota - used;
-            d.innerHTML += `<div class="quota-card" style="border-left-color:${userData.config[t].color}">
+            const rem = typeConfig.quota - used;
+            const percentage = (used / typeConfig.quota) * 100;
+            
+            // Déterminer la classe CSS selon le quota restant
+            let cardClass = 'quota-card';
+            if (percentage >= 90) cardClass += ' quota-danger';
+            else if (percentage >= 70) cardClass += ' quota-warning';
+            
+            d.innerHTML += `<div class="${cardClass}" style="border-left-color:${typeConfig.color}">
                 <strong>${t}</strong> 
-                <b>${Number(rem)} / ${userData.config[t].quota}j</b>
+                <b>${rem.toFixed(1)} / ${typeConfig.quota}j</b>
             </div>`;
+            
             s.innerHTML += `<option value="${t}">${t}</option>`;
             
+            // Ajouter à la légende
+            legend.innerHTML += `<div class="legend-item"><div class="legend-color" style="background:${typeConfig.color};"></div>${t}</div>`;
+            
+            // Liste admin
             const row = document.createElement('div');
             row.className = 'type-item-row';
-            row.innerHTML = `<span>${t} (${userData.config[t].quota}j)</span>`;
+            row.innerHTML = `<span>${t} (${typeConfig.quota}j)</span>`;
+            
             const delBtn = document.createElement('button');
             delBtn.innerText = '🗑️';
             delBtn.style = 'background:none; border:none; cursor:pointer; color:red; font-size:1.2em;';
-            delBtn.onclick = () => {
-                Swal.fire({
+            delBtn.onclick = async () => {
+                const result = await Swal.fire({
                     title: 'Êtes-vous sûr ?',
-                    text: `Supprimer le type "${t}" et TOUS les congés associés ?`,
+                    html: `Supprimer le type <strong>"${t}"</strong> et TOUS les congés associés ?`,
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#e74c3c',
                     cancelButtonColor: '#95a5a6',
                     confirmButtonText: 'Oui, supprimer',
                     cancelButtonText: 'Annuler'
-                }).then(async (result) => {
-                    if (result.isConfirmed) {
-                        userData.leaves = userData.leaves.filter(l => !l.title.startsWith(t));
-                        delete userData.config[t];
-                        await setDoc(doc(db, "users", auth.currentUser.uid), userData);
+                });
+                
+                if (result.isConfirmed) {
+                    userData.leaves = userData.leaves.filter(l => !l.title.startsWith(t));
+                    delete userData.config[t];
+                    const success = await saveUserData();
+                    if (success) {
                         Swal.fire('Supprimé !', 'Le type a été retiré.', 'success');
                     }
-                });
+                }
             };
             row.appendChild(delBtn);
             a.appendChild(row);
         });
+        
+        // Ajouter légende pour info libre
+        legend.innerHTML += '<div class="legend-item"><div class="legend-color" style="background:#bdc3c7;"></div>Info libre</div>';
 
+        // Rafraîchir le calendrier avec IDs uniques
         calendar.removeAllEvents();
-        calendar.addEventSource(userData.leaves);
+        calendar.addEventSource(userData.leaves.map(leave => ({
+            id: leave.id, // ID unique pour la suppression
+            title: leave.title,
+            start: leave.start,
+            backgroundColor: leave.backgroundColor,
+            borderColor: leave.borderColor,
+            className: leave.value === 0.5 ? 'half-day' : ''
+        })));
     }
 
     // --- INTERACTIONS ---
     document.getElementById('leave-type-select').onchange = (e) => {
-        document.getElementById('custom-info-group').style.display = (e.target.value === 'INFO_LIBRE') ? 'block' : 'none';
+        document.getElementById('custom-info-group').style.display = 
+            (e.target.value === 'INFO_LIBRE') ? 'block' : 'none';
     };
 
     document.getElementById('toggle-settings-btn').onclick = () => {
-        const s = document.getElementById('settings-content'), b = document.getElementById('toggle-settings-btn');
+        const s = document.getElementById('settings-content');
+        const b = document.getElementById('toggle-settings-btn');
         const isHidden = s.style.display === 'none';
         s.style.display = isHidden ? 'block' : 'none';
         b.innerText = isHidden ? 'Masquer' : 'Afficher';
     };
 
     document.getElementById('save-type-btn').onclick = async () => {
-        const n = document.getElementById('new-type-name').value.trim(), q = document.getElementById('new-type-quota').value, c = document.getElementById('new-type-color').value;
-        if(n && q) {
-            userData.config[n] = { quota: parseInt(q), color: c };
-            await setDoc(doc(db, "users", auth.currentUser.uid), userData);
+        const n = document.getElementById('new-type-name').value.trim();
+        const q = document.getElementById('new-type-quota').value;
+        const c = document.getElementById('new-type-color').value;
+        
+        if(!n) {
+            return Swal.fire({ 
+                icon: 'warning', 
+                title: 'Attention', 
+                text: 'Veuillez saisir un nom pour le type.', 
+                confirmButtonColor: '#2c3e50' 
+            });
+        }
+        
+        if(!q || parseFloat(q) <= 0) {
+            return Swal.fire({ 
+                icon: 'warning', 
+                title: 'Attention', 
+                text: 'Veuillez saisir un quota valide (supérieur à 0).', 
+                confirmButtonColor: '#2c3e50' 
+            });
+        }
+        
+        if(userData.config[n]) {
+            return Swal.fire({ 
+                icon: 'warning', 
+                title: 'Attention', 
+                text: 'Ce type existe déjà.', 
+                confirmButtonColor: '#2c3e50' 
+            });
+        }
+        
+        userData.config[n] = { quota: parseFloat(q), color: c };
+        const success = await saveUserData();
+        
+        if (success) {
             document.getElementById('new-type-name').value = '';
             document.getElementById('new-type-quota').value = '';
+            document.getElementById('new-type-color').value = '#3498db';
+            
+            Swal.fire({ 
+                icon: 'success', 
+                title: 'Type créé !', 
+                text: `Le type "${n}" a été ajouté.`, 
+                timer: 2000, 
+                showConfirmButton: false 
+            });
         }
     };
 
     document.getElementById('reset-year-btn').onclick = async () => {
         const result = await Swal.fire({
             title: 'Action irréversible !',
-            text: "Voulez-vous vraiment supprimer TOUS vos congés posés et réinitialiser vos compteurs ?",
+            html: "Voulez-vous vraiment supprimer <strong>TOUS</strong> vos congés posés ?<br><small>(Les types de congés seront conservés)</small>",
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#e74c3c',
@@ -459,12 +881,15 @@ if ('serviceWorker' in navigator) {
         });
 
         if (result.isConfirmed) {
-            try {
-                userData.leaves = [];
-                await setDoc(doc(db, "users", auth.currentUser.uid), userData);
-                Swal.fire('Réinitialisé !', 'Votre calendrier est à nouveau vide pour la nouvelle année.', 'success');
-            } catch (err) {
-                Swal.fire('Erreur', "La réinitialisation a échoué : " + err.message, 'error');
+            userData.leaves = [];
+            const success = await saveUserData();
+            
+            if (success) {
+                Swal.fire(
+                    'Réinitialisé !', 
+                    'Votre calendrier est à nouveau vide.', 
+                    'success'
+                );
             }
         }
     };
@@ -485,28 +910,89 @@ if ('serviceWorker' in navigator) {
             }
         });
     });
+    
+    // Initialisation au chargement
+    window.addEventListener('DOMContentLoaded', () => {
+        const checkedRadio = document.querySelector('input[name="duration"]:checked');
+        if (checkedRadio) {
+            checkedRadio.dispatchEvent(new Event('change'));
+        }
+    });
 
     // FONCTION PRINCIPALE : AJOUTER UN CONGÉ
     document.getElementById('add-leave-btn').onclick = async () => {
         const start = document.getElementById('start-date').value;
         const end = document.getElementById('end-date').value;
         const type = document.getElementById('leave-type-select').value;
-        
-        // Récupérer la valeur du bouton radio coché (full, am, ou pm)
         const durationMode = document.querySelector('input[name="duration"]:checked').value;
 
+        // VALIDATIONS
         if (!start || !type) {
-            return Swal.fire({ icon: 'warning', title: 'Attention', text: 'Veuillez remplir les dates et le type.', confirmButtonColor: '#2c3e50' });
+            return Swal.fire({ 
+                icon: 'warning', 
+                title: 'Attention', 
+                text: 'Veuillez remplir les dates et le type.', 
+                confirmButtonColor: '#2c3e50' 
+            });
         }
 
         const isC = (type === 'INFO_LIBRE');
-        const baseTitle = isC ? document.getElementById('custom-info-text').value : type;
+        const baseTitle = isC ? document.getElementById('custom-info-text').value.trim() : type;
 
+        // Validation INFO_LIBRE
+        if (isC && !baseTitle) {
+            return Swal.fire({ 
+                icon: 'warning', 
+                title: 'Attention', 
+                text: 'Veuillez saisir un titre pour l\'information libre.', 
+                confirmButtonColor: '#2c3e50' 
+            });
+        }
+
+        // Validation dates
+        if (durationMode === 'full' && end && new Date(end) < new Date(start)) {
+            return Swal.fire({ 
+                icon: 'warning', 
+                title: 'Attention', 
+                text: 'La date de fin doit être après ou égale à la date de début.', 
+                confirmButtonColor: '#2c3e50' 
+            });
+        }
+
+        // VERIFICATION QUOTA (sauf pour INFO_LIBRE)
+        if (!isC) {
+            const currentUsed = userData.leaves
+                .filter(l => (l.title === type || l.title.startsWith(type + " (")) && !l.isCustom)
+                .reduce((acc, l) => acc + (l.value ?? 1), 0);
+            
+            let newDays;
+            if (durationMode === 'full') {
+                newDays = calculateWorkDays(start, end || start);
+            } else {
+                newDays = 0.5;
+            }
+            
+            const remainingQuota = userData.config[type].quota - currentUsed;
+            
+            if (newDays > remainingQuota) {
+                return Swal.fire({ 
+                    icon: 'error', 
+                    title: 'Quota dépassé', 
+                    html: `Il vous reste <strong>${remainingQuota.toFixed(1)}</strong> jour(s) de <strong>${type}</strong>.<br>Vous essayez d'en poser <strong>${newDays.toFixed(1)}</strong>.`, 
+                    confirmButtonColor: '#e74c3c' 
+                });
+            }
+        }
+
+        // AJOUT DES CONGES
+        const newLeaves = [];
+        
         if (durationMode !== 'full') {
             // --- CAS DEMI-JOURNÉE (Matin ou Après-midi) ---
-            const suffix = (durationMode === 'am') ? ' (Matin)' : ' (Apr-Midi)';
+            const suffix = (durationMode === 'am') ? ' (Matin)' : ' (Après-midi)';
             
-            userData.leaves.push({
+            newLeaves.push({
+                id: Date.now() + '-' + Math.random().toString(36).substr(2, 9), // ID unique
                 title: baseTitle + suffix,
                 start: start,
                 backgroundColor: isC ? '#bdc3c7' : userData.config[type].color,
@@ -520,10 +1006,16 @@ if ('serviceWorker' in navigator) {
             let last = new Date(end || start);
 
             while (cur <= last) {
-                if (cur.getDay() !== 0 && cur.getDay() !== 6) { // Hors week-end
-                    userData.leaves.push({
+                const curStr = cur.toISOString().split('T')[0];
+                const day = cur.getDay();
+                const year = cur.getFullYear();
+                
+                // Ignorer les week-ends ET les jours fériés
+                if (day !== 0 && day !== 6 && !isHoliday(curStr, year)) {
+                    newLeaves.push({
+                        id: Date.now() + '-' + Math.random().toString(36).substr(2, 9), // ID unique
                         title: baseTitle,
-                        start: cur.toISOString().split('T')[0],
+                        start: curStr,
                         backgroundColor: isC ? '#bdc3c7' : userData.config[type].color,
                         borderColor: '#ddd',
                         isCustom: isC,
@@ -533,19 +1025,49 @@ if ('serviceWorker' in navigator) {
                 cur.setDate(cur.getDate() + 1);
             }
         }
+        
+        if (newLeaves.length === 0 && durationMode === 'full') {
+            return Swal.fire({ 
+                icon: 'info', 
+                title: 'Aucun jour ouvré', 
+                text: 'La période sélectionnée ne contient aucun jour ouvré (hors week-ends et jours fériés).', 
+                confirmButtonColor: '#3498db' 
+            });
+        }
+
+        // Ajouter tous les nouveaux congés
+        userData.leaves.push(...newLeaves);
 
         // Sauvegarde Firebase
-        await setDoc(doc(db, "users", auth.currentUser.uid), userData);
-
-        // Reset du formulaire
-        document.getElementById('start-date').value = '';
-        document.getElementById('end-date').value = '';
-        document.getElementById('custom-info-text').value = '';
-        // Reset radio à "Journée"
-        const fullRadio = document.querySelector('input[name="duration"][value="full"]');
-        fullRadio.checked = true;
-        // Déclencher l'event change pour réafficher la date de fin
-        fullRadio.dispatchEvent(new Event('change'));
+        const success = await saveUserData();
+        
+        if (success) {
+            // Animation de succès
+            const btn = document.getElementById('add-leave-btn');
+            btn.classList.add('success-animation');
+            setTimeout(() => btn.classList.remove('success-animation'), 300);
+            
+            // Reset du formulaire
+            document.getElementById('start-date').value = '';
+            document.getElementById('end-date').value = '';
+            document.getElementById('custom-info-text').value = '';
+            document.getElementById('leave-type-select').value = '';
+            
+            // Reset radio à "Journée"
+            const fullRadio = document.querySelector('input[name="duration"][value="full"]');
+            fullRadio.checked = true;
+            fullRadio.dispatchEvent(new Event('change'));
+            
+            // Message de succès
+            const daysText = newLeaves.length === 1 ? '1 jour ajouté' : `${newLeaves.reduce((acc, l) => acc + l.value, 0)} jours ajoutés`;
+            Swal.fire({ 
+                icon: 'success', 
+                title: 'Enregistré !', 
+                text: daysText,
+                timer: 2000, 
+                showConfirmButton: false 
+            });
+        }
     };
 
     document.getElementById('logout-btn').onclick = async () => {
@@ -553,7 +1075,13 @@ if ('serviceWorker' in navigator) {
             await signOut(auth);
             window.location.reload();
         } catch (err) {
-            alert("Erreur lors de la déconnexion : " + err.message);
+            console.error("Erreur déconnexion:", err);
+            Swal.fire({ 
+                icon: 'error', 
+                title: 'Erreur', 
+                text: 'Impossible de se déconnecter.', 
+                confirmButtonColor: '#e74c3c' 
+            });
         }
     };
 
@@ -561,22 +1089,45 @@ if ('serviceWorker' in navigator) {
         Swal.fire({
             title: '<strong>📖 Guide de l\'utilisateur</strong>',
             icon: 'info',
-            width: '600px',
+            width: '650px',
             html: `
-                <div style="text-align: left; font-size: 0.85em; line-height: 1.6; max-height: 400px; overflow-y: auto;">
-                    <h4 style="color:var(--primary); border-bottom: 1px solid #eee; padding-bottom: 5px;">📊 Gestion des Compteurs</h4>
-                    <p>Commencez par créer vos types de congés dans la section <strong>⚙️ Configuration</strong> (ex: CP, RTT).</p>
-
-                    <h4 style="color:var(--primary); border-bottom: 1px solid #eee; padding-bottom: 5px;">📅 Poser des Jours</h4>
-                    <ul>
-                        <li><strong>Durée :</strong> Sélectionnez "Journée", "Matin" ou "Après-midi".</li>
-                        <li><strong>Matin/Apr-Midi :</strong> Décompte 0.5 jour.</li>
-                        <li><strong>Journée :</strong> Décompte 1 jour (ignore les week-ends automatiquement).</li>
+                <div style="text-align: left; font-size: 0.9em; line-height: 1.7; max-height: 450px; overflow-y: auto; padding: 10px;">
+                    <h4 style="color:var(--primary); border-bottom: 2px solid #eee; padding-bottom: 8px; margin-top: 0;">📊 Gestion des Compteurs</h4>
+                    <p>Commencez par créer vos types de congés dans la section <strong>⚙️ Configuration</strong>.</p>
+                    <p><strong>Exemples :</strong> CP (25 jours), RTT (12 jours), Formation (5 jours)</p>
+                    <ul style="margin: 10px 0;">
+                        <li>Les compteurs affichent vos jours restants en temps réel</li>
+                        <li>🟡 Alerte à 70% d'utilisation</li>
+                        <li>🔴 Alerte à 90% d'utilisation</li>
                     </ul>
 
-                    <h4 style="color:var(--primary); border-bottom: 1px solid #eee; padding-bottom: 5px;">🖱️ Interactions</h4>
+                    <h4 style="color:var(--primary); border-bottom: 2px solid #eee; padding-bottom: 8px; margin-top: 20px;">📅 Poser des Jours</h4>
+                    <p><strong>Durée :</strong></p>
                     <ul>
-                        <li>Cliquez sur un événement dans le calendrier pour le supprimer.</li>
+                        <li><strong>Journée :</strong> Sélectionnez une date de début et de fin (ignore automatiquement les week-ends ET jours fériés)</li>
+                        <li><strong>Matin ou Après-midi :</strong> Décompte 0.5 jour sur une seule date</li>
+                    </ul>
+                    
+                    <p style="margin-top: 15px;"><strong>💡 Information libre :</strong> Pour noter des événements sans décompter de quota (rendez-vous, formations externes, etc.)</p>
+
+                    <h4 style="color:var(--primary); border-bottom: 2px solid #eee; padding-bottom: 8px; margin-top: 20px;">🎯 Jours Fériés</h4>
+                    <p>Les jours fériés français sont automatiquement exclus du décompte de vos congés !</p>
+                    <p style="background: #e8f5e9; padding: 10px; border-radius: 6px; border-left: 4px solid var(--success); margin: 10px 0;">
+                        <strong>Exemple :</strong> Si vous posez du 1er au 5 mai, seuls les jours ouvrés (hors 1er mai) seront décomptés.
+                    </p>
+
+                    <h4 style="color:var(--primary); border-bottom: 2px solid #eee; padding-bottom: 8px; margin-top: 20px;">🖱️ Interactions</h4>
+                    <ul>
+                        <li>Cliquez sur un événement dans le calendrier pour le <strong>supprimer</strong></li>
+                        <li>La légende en haut du calendrier vous aide à identifier les types de congés</li>
+                        <li>Passez en vue <strong>Année</strong> pour avoir une vision globale</li>
+                    </ul>
+
+                    <h4 style="color:var(--primary); border-bottom: 2px solid #eee; padding-bottom: 8px; margin-top: 20px;">⚠️ Points d'attention</h4>
+                    <ul>
+                        <li>L'application vérifie que vous n'excédez pas votre quota avant validation</li>
+                        <li>Tous les congés sont synchronisés en temps réel avec Firebase</li>
+                        <li>Pour modifier un congé, supprimez-le puis recréez-le</li>
                     </ul>
                 </div>
             `,
