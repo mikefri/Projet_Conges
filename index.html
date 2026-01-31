@@ -662,9 +662,20 @@ if ('serviceWorker' in navigator) {
 
                     if (result.isConfirmed) {
                         try {
-                            // Utiliser l'ID unique pour supprimer
-                            const eventId = info.event.id;
+                            // Récupérer l'ID depuis extendedProps (où on le stocke vraiment)
+                            const eventId = info.event.extendedProps.originalId;
+                            console.log("Suppression de l'événement avec ID:", eventId);
+                            
+                            const beforeCount = userData.leaves.length;
                             userData.leaves = userData.leaves.filter(l => l.id !== eventId);
+                            const afterCount = userData.leaves.length;
+                            
+                            console.log(`Événements avant: ${beforeCount}, après: ${afterCount}`);
+                            
+                            if (beforeCount === afterCount) {
+                                throw new Error("Aucun événement trouvé avec cet ID");
+                            }
+                            
                             await saveUserData();
                             
                             Swal.fire({ 
@@ -678,7 +689,7 @@ if ('serviceWorker' in navigator) {
                             Swal.fire({ 
                                 icon: 'error', 
                                 title: 'Erreur', 
-                                text: 'Impossible de supprimer cet événement.', 
+                                text: 'Impossible de supprimer cet événement : ' + error.message, 
                                 confirmButtonColor: '#e74c3c' 
                             });
                         }
@@ -795,12 +806,15 @@ if ('serviceWorker' in navigator) {
         // Rafraîchir le calendrier avec IDs uniques
         calendar.removeAllEvents();
         calendar.addEventSource(userData.leaves.map(leave => ({
-            id: leave.id, // ID unique pour la suppression
+            id: leave.id, // ID pour FullCalendar (peut être transformé)
             title: leave.title,
             start: leave.start,
             backgroundColor: leave.backgroundColor,
             borderColor: leave.borderColor,
-            className: leave.value === 0.5 ? 'half-day' : ''
+            className: leave.value === 0.5 ? 'half-day' : '',
+            extendedProps: {
+                originalId: leave.id // ID original stocké ici
+            }
         })));
     }
 
